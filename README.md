@@ -54,8 +54,8 @@ cd Epoch-Projects
 ## ✨ Contributors  
 Thanks go to these Wonderful People! Contributions of any kind are welcome! 🚀  
 
-<a href="https://github.com/epochiiits/Epoch-DL-Publications/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=epochiiits/Epoch-DL-Publications" />
+<a href="https://github.com/epochiiits/Epoch-Projects/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=epochiiitsEpoch-Projects" />
 </a>  
 
 
