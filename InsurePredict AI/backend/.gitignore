@@ -1,0 +1,27 @@
+# Virtual environments
+venv/
+env/
+
+# Bytecode and cache files
+__pycache__/
+*.py[cod]
+
+# Logs and debug files
+*.log
+*.out
+
+# Database files
+db.sqlite3
+*.sqlite3
+
+# Django secret keys (if using a `.env` file)
+.env
+*.env
+
+# Migrations (optional, if you don't want to track generated migrations)
+**/migrations/**
+
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
