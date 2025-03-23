@@ -51,13 +51,16 @@ cd Epoch-Projects
 
 
 
-## ✨ Contributors  
-Thanks go to these Wonderful People! Contributions of any kind are welcome! 🚀  
+****************************************************************
+<h2>✨Top Contributors</h2>   
+
+Thanks goes to these Wonderful People. Contributions of any kind are welcome!🚀 
 
 <a href="https://github.com/epochiiits/Epoch-Projects/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=epochiiitsEpoch-Projects" />
-</a>  
+  <img src="https://contrib.rocks/image?repo=epochiiits/Publications" />
+</a>
 
+**************************************************************
 
 ## 📜 License  
 All projects in this repository are licensed under the **MIT License**.  
