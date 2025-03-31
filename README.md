@@ -29,6 +29,11 @@ Here are some of the exciting projects you'll find in this repository:
 
 1. **InsurePredict AI** - A Machine Learning Model Designed to Predict the Likelihood of Customers leaving an Insurance Provider.
 2. **Assistify AI** - An AI-powered digital agent designed to resolve customer issues, enhance user experiences, and reduce operational costs.
+3. **Goal Forge** - An AI-powered productivity platform that helps users set goals, break them into manageable tasks, and track progress effectively.
+	
+	
+	
+	
 	
 	
 	
