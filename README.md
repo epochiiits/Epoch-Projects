@@ -28,7 +28,11 @@ Feel free to explore, learn, and contribute to our projects! If you have any sug
 Here are some of the exciting projects you'll find in this repository:  
 
 1. **InsurePredict AI** - A Machine Learning Model Designed to Predict the Likelihood of Customers leaving an Insurance Provider.
-
+2. **Assistify AI** - An AI-powered digital agent designed to resolve customer issues, enhance user experiences, and reduce operational costs.
+	
+	
+	
+	
 
 Each project includes:  
 - Well-documented code 📄  
