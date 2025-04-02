@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Churn Prediction</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+    }
+    
+    body {
+      background-color: #f5f5f5;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    header {
+      background-color: #1a3c6e;
+      color: white;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .form-title {
+      margin-bottom: 1.5rem;
+      color: #1a3c6e;
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 0.5rem;
+    }
+    
+    .form-row {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .form-field {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    label {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      color: #555;
+    }
+    
+    input, select {
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: #1a3c6e;
+      box-shadow: 0 0 0 2px rgba(26, 60, 110, 0.2);
+    }
+    
+    .required::after {
+      content: " *";
+      color: #e53935;
+    }
+    
+    .btn-group {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+    }
+    
+    .btn-reset {
+      background-color: #f0f0f0;
+      color: #333;
+    }
+    
+    .btn-submit {
+      background-color: #1a3c6e;
+      color: white;
+    }
+    
+    .btn-reset:hover {
+      background-color: #e0e0e0;
+    }
+    
+    .btn-submit:hover {
+      background-color: #15325c;
+    }
+    
+    .result-container {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      border-radius: 8px;
+      display: none;
+    }
+    
+    .result-section {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    .result-section:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    
+    .result-container.high-risk {
+      background-color: #ffebee;
+      border: 1px solid #ffcdd2;
+    }
+    
+    .result-container.low-risk {
+      background-color: #e8f5e9;
+      border: 1px solid #c8e6c9;
+    }
+    
+    .result-container.med-risk {
+      background-color: #fff8e1;
+      border: 1px solid #ffecb3;
+    }
+    
+    .result-title {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .risk-percentage {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+    
+    .value-category {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      color: #1a3c6e;
+    }
+    
+    .recommendation {
+      line-height: 1.6;
+      margin-bottom: 0.5rem;
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      margin-top: 2rem;
+    }
+    
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #1a3c6e;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .error-message {
+      color: #c62828;
+      background-color: #ffebee;
+      padding: 1rem;
+      border-radius: 4px;
+      margin-top: 1rem;
+      display: none;
+    }
+    
+    /* Visual indicators for plan recommendation */
+    .plan-upgrade {
+      background-color: #e3f2fd;
+      padding: 0.5rem;
+      border-radius: 4px;
+      margin-top: 0.5rem;
+      border-left: 4px solid #2196f3;
+    }
+    
+    .plan-good {
+      background-color: #e8f5e9;
+      padding: 0.5rem;
+      border-radius: 4px;
+      margin-top: 0.5rem;
+      border-left: 4px solid #4caf50;
+    }
+    
+    @media (max-width: 768px) {
+      .form-row {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .container {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Customer Churn Prediction</h1>
+  </header>
+  
+  <div class="container">
+    <h2 class="form-title">Enter Customer Data for Prediction</h2>
+    
+    <form id="predictionForm">
+      <!-- Fields in the same order as expected by predict_churn function -->
+      
+      <!-- Age -->
+      <div class="form-row">
+        <div class="form-field">
+          <label for="age" class="required">Age</label>
+          <input type="number" id="age" name="age" min="18" max="120" required placeholder="e.g., 35">
+        </div>
+        
+        <!-- Gender -->
+        <div class="form-field">
+          <label for="gender" class="required">Gender</label>
+          <select id="gender" name="gender" required>
+            <option value="">Select gender</option>
+            <option value="0">Male</option>
+            <option value="1">Female</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- Earnings -->
+      <div class="form-row">
+        <div class="form-field">
+          <label for="earnings" class="required">Annual Earnings ($)</label>
+          <input type="number" id="earnings" name="earnings" min="0" step="0.01" required placeholder="e.g., 60000">
+        </div>
+        
+        <!-- Claim Amount -->
+        <div class="form-field">
+          <label for="claim-amount" class="required">Claim Amount ($)</label>
+          <input type="number" id="claim-amount" name="claim_amount" min="0" step="0.01" required placeholder="e.g., 1000">
+        </div>
+      </div>
+      
+      <!-- Insurance Plan Amount -->
+      <div class="form-row">
+        <div class="form-field">
+          <label for="plan-amount" class="required">Insurance Plan Amount ($)</label>
+          <input type="number" id="plan-amount" name="insurance_plan_amount" min="0" step="0.01" required placeholder="e.g., 2500">
+        </div>
+        
+        <!-- Credit Score -->
+        <div class="form-field">
+          <label for="credit-score" class="required">Credit Score</label>
+          <input type="number" id="credit-score" name="credit_score" min="300" max="850" required placeholder="e.g., 720">
+        </div>
+      </div>
+      
+      <!-- Marital Status -->
+      <div class="form-row">
+        <div class="form-field">
+          <label for="marital-status" class="required">Marital Status</label>
+          <select id="marital-status" name="marital_status" required>
+            <option value="">Select status</option>
+            <option value="0">Single</option>
+            <option value="1">Married</option>
+            <option value="2">Divorced</option>
+            <option value="3">Widowed</option>
+          </select>
+        </div>
+        
+        <!-- Days Passed -->
+        <div class="form-field">
+          <label for="days-passed" class="required">Days Since Policy Start</label>
+          <input type="number" id="days-passed" name="days_passed" min="0" required placeholder="e.g., 180">
+        </div>
+      </div>
+      
+      <!-- Insurance Types -->
+      <div class="form-row">
+        <div class="form-field">
+          <label for="automobile-insurance" class="required">Automobile Insurance</label>
+          <select id="automobile-insurance" name="automobile_insurance" required>
+            <option value="">Select</option>
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+          </select>
+        </div>
+        
+        <div class="form-field">
+          <label for="health-insurance" class="required">Health Insurance</label>
+          <select id="health-insurance" name="health_insurance" required>
+            <option value="">Select</option>
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-field">
+          <label for="life-insurance" class="required">Life Insurance</label>
+          <select id="life-insurance" name="life_insurance" required>
+            <option value="">Select</option>
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+          </select>
+        </div>
+        
+        <!-- Plan Type -->
+        <div class="form-field">
+          <label for="plan-type" class="required">Plan Type</label>
+          <select id="plan-type" name="plan_type" required>
+            <option value="">Select plan</option>
+            <option value="0">Basic</option>
+            <option value="1">Standard</option>
+            <option value="2">Premium</option>
+            <option value="3">Elite</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="btn-group">
+        <button type="reset" class="btn btn-reset">Reset</button>
+        <button type="submit" class="btn btn-submit">Predict Churn</button>
+      </div>
+    </form>
+    
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Processing prediction...</p>
+    </div>
+    
+    <div class="error-message" id="error-message"></div>
+    
+    <div class="result-container" id="result-container"></div>
+  </div>
+  
+  <script>
+    document.getElementById('predictionForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      
+      // Show loading state
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('error-message').style.display = 'none';
+      document.getElementById('result-container').style.display = 'none';
+      
+      try {
+        // Collect form data in the exact order required by the API
+        const formData = [
+          parseFloat(document.getElementById('age').value),
+          parseInt(document.getElementById('gender').value),
+          parseFloat(document.getElementById('earnings').value),
+          parseFloat(document.getElementById('claim-amount').value),
+          parseFloat(document.getElementById('plan-amount').value),
+          parseInt(document.getElementById('credit-score').value),
+          parseInt(document.getElementById('marital-status').value),
+          parseInt(document.getElementById('days-passed').value),
+          parseInt(document.getElementById('automobile-insurance').value),
+          parseInt(document.getElementById('health-insurance').value),
+          parseInt(document.getElementById('life-insurance').value),
+          parseInt(document.getElementById('plan-type').value)
+        ];
+        
+        // Make API request
+        const response = await fetch('/api/predict/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken') // Function defined below
+          },
+          body: JSON.stringify({ features: formData })
+
+          
+        });
+        console.log(JSON.stringify({ features: formData })
+        );
+        if (!response.ok) {
+    try {
+        // Try to get the error details from the response body
+        const errorData = await response.json();
+        const errorMessage = errorData.error || `Server returned ${response.status}: ${response.statusText}`;
+        throw new Error(errorMessage);
+    } catch (error) {
+        // Log the error and its stack trace
+        console.error("Error during response processing:", error);
+        console.error("Error stack trace:", error.stack);
+
+        // Optionally, re-throw the error to propagate it further
+        throw error;
+    }
+}        
+        const result = await response.json();
+        
+        // Hide loading
+        document.getElementById('loading').style.display = 'none';
+        
+        // Get result container
+        const resultContainer = document.getElementById('result-container');
+        resultContainer.innerHTML = ''; // Clear previous results
+        
+        // Create elements for each section of results
+        // 1. Churn Analysis
+        const churnSection = document.createElement('div');
+        churnSection.className = 'result-section';
+        
+        const churnTitle = document.createElement('h3');
+        churnTitle.className = 'result-title';
+        churnTitle.textContent = 'Churn Analysis';
+        churnSection.appendChild(churnTitle);
+        
+        const churnResult = result.churn_analysis;
+        const probability = churnResult.churn_probability;
+        
+        const riskPercentage = document.createElement('div');
+        riskPercentage.className = 'risk-percentage';
+        riskPercentage.textContent = `Churn Probability: ${(probability * 100).toFixed(1)}%`;
+        churnSection.appendChild(riskPercentage);
+        
+        const churnRecommendation = document.createElement('p');
+        churnRecommendation.className = 'recommendation';
+        churnRecommendation.textContent = churnResult.recommendation;
+        churnSection.appendChild(churnRecommendation);
+        
+        resultContainer.appendChild(churnSection);
+        
+        // 2. Plan Recommendation
+        const planSection = document.createElement('div');
+        planSection.className = 'result-section';
+        
+        const planTitle = document.createElement('h3');
+        planTitle.className = 'result-title';
+        planTitle.textContent = 'Plan Recommendation';
+        planSection.appendChild(planTitle);
+        
+        const planResult = result.plan_recommendation;
+        
+        const planMessage = document.createElement('p');
+        planMessage.className = 'recommendation';
+        planMessage.textContent = planResult.plan_message;
+        planSection.appendChild(planMessage);
+        
+        resultContainer.appendChild(planSection);
+        
+        // 3. Customer Analysis
+        const customerSection = document.createElement('div');
+        customerSection.className = 'result-section';
+        
+        const customerTitle = document.createElement('h3');
+        customerTitle.className = 'result-title';
+        customerTitle.textContent = 'Customer Analysis';
+        customerSection.appendChild(customerTitle);
+        
+        const customerResult = result.customer_analysis;
+        
+        if (customerResult.value_category) {
+          const valueCategory = document.createElement('div');
+          valueCategory.className = 'value-category';
+          valueCategory.textContent = `Customer Value: ${customerResult.value_category}`;
+          customerSection.appendChild(valueCategory);
+        }
+        
+        const customerMessage = document.createElement('p');
+        customerMessage.className = 'recommendation';
+        customerMessage.textContent = customerResult.value_message || 'No additional customer analysis available.';
+        customerSection.appendChild(customerMessage);
+        
+        resultContainer.appendChild(customerSection);
+        
+        // Set overall container class based on churn risk
+        if (probability > 0.7) {
+          resultContainer.className = 'result-container high-risk';
+        } else if (probability > 0.4) {
+          resultContainer.className = 'result-container med-risk';
+        } else {
+          resultContainer.className = 'result-container low-risk';
+        }
+        
+        resultContainer.style.display = 'block';
+        
+      } catch (error) {
+        // Show error
+        document.getElementById('loading').style.display = 'none';
+        const errorMessage = document.getElementById('error-message');
+        errorMessage.textContent = `Error: ${error.message}`;
+        errorMessage.style.display = 'block';
+        console.error('Prediction error:', error);
+      }
+    });
+    
+    // Helper function to get CSRF token from cookies
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+  </script>
+</body>
+</html>
