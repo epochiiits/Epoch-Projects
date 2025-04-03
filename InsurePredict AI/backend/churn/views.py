@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
+
 import json
 from .utils import get_comprehensive_analysis
 
