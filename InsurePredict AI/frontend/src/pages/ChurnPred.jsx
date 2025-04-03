@@ -93,8 +93,24 @@ const ChurnPred = () => {
         {result && (
           <div className="mt-4 p-4 bg-gray-200 rounded-md">
             <h3 className="text-lg font-semibold">Prediction Result:</h3>
-            <p>Churn Probability: <span className="font-bold">{result.churn_probability.toFixed(2)}</span></p>
-            <p>Recommendation: <span className="font-bold">{result.recommendation}</span></p>
+            <p>Churn Probability: <span className="font-bold">{result.churn_analysis.churn_probability}</span></p>
+            <p>Churn Risk: <span className="font-bold">{result.churn_analysis.is_churn_risk ? "Yes" : "No"}</span></p>
+            <p>Recommendation: <span className="font-bold">{result.churn_analysis.recommendation}</span></p>
+            <h3 className="text-lg font-semibold mt-3">Plan Recommendation:</h3>
+            <p>Recommended Plan: <span className="font-bold">{result.plan_recommendation.recommended_plan_name}</span></p>
+            <p>Plan Message: <span className="font-bold">{result.plan_recommendation.plan_message}</span></p>
+            <h3 className="text-lg font-semibold mt-3">Customer Analysis:</h3>
+            <p>Customer Value: <span className="font-bold">{result.customer_analysis.customer_value}</span></p>
+            <p>Value Category: <span className="font-bold">{result.customer_analysis.value_category}</span></p>
+            <p>Segment: <span className="font-bold">{result.customer_analysis.customer_segment}</span></p>
+            <p>Revenue Potential: <span className="font-bold">{result.customer_analysis.revenue_potential}</span></p>
+            <p>Cross-sell Opportunity: <span className="font-bold">{result.customer_analysis.cross_sell_opportunity}</span></p>
+            <h3 className="text-lg font-semibold mt-3">Value Recommendations:</h3>
+            <ul className="list-disc pl-5">
+              {result.customer_analysis.value_recommendations.map((rec, index) => (
+                <li key={index}>{rec}</li>
+              ))}
+            </ul>
           </div>
         )}
       </div>

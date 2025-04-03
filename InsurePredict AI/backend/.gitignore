@@ -1,6 +1,7 @@
 # Virtual environments
 venv/
 env/
+insurance_env/
 
 # Bytecode and cache files
 __pycache__/
