@@ -55,134 +55,118 @@ const ChurnPred = () => {
     }
   };
 
-  const inputStyles = "w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-black focus:ring-1 focus:ring-black transition-all duration-200 outline-none bg-white hover:bg-gray-50";
-  const labelStyles = "block text-sm font-medium text-gray-700 mb-1";
-
-  const formFields = {
-    age: { label: "Age", placeholder: "Enter age in years" },
-    gender: { label: "Gender", options: ["Male", "Female"] },
-    earnings: { label: "Annual Earnings", placeholder: "Enter amount in dollars" },
-    claimAmount: { label: "Claim Amount", placeholder: "Enter claim amount" },
-    planAmount: { label: "Plan Amount", placeholder: "Enter plan amount" },
-    creditScore: { label: "Credit Score", placeholder: "Enter score (300-850)" },
-    maritalStatus: { label: "Marital Status", options: ["Single", "Married"] },
-    daysPassed: { label: "Days Since Last Claim", placeholder: "Enter number of days" },
-    autoInsurance: { label: "Auto Insurance", options: ["Yes", "No"] },
-    healthInsurance: { label: "Health Insurance", options: ["Yes", "No"] },
-    lifeInsurance: { label: "Life Insurance", options: ["Yes", "No"] },
-    planType: { label: "Plan Type", options: ["Basic", "Premium"] }
-  };
-
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4 md:p-8"
+      className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-black p-8"
     >
-      <div className="bg-white shadow-xl rounded-xl p-8 w-full max-w-4xl">
-        <h2 className="text-3xl font-bold mb-8 text-center text-black">Insurance Churn Prediction</h2>
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
-            {Object.entries(formFields).map(([key, field]) => (
-              <div key={key}>
-                <label htmlFor={key} className={labelStyles}>
-                  {field.label}
-                </label>
-                {field.options ? (
-                  <select
-                    id={key}
-                    name={key}
-                    value={formData[key]}
-                    onChange={handleChange}
-                    className={inputStyles}
-                  >
-                    {field.options.map(option => (
-                      <option key={option} value={option}>{option}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <input
-                    id={key}
-                    type="number"
-                    name={key}
-                    placeholder={field.placeholder}
-                    value={formData[key]}
-                    onChange={handleChange}
-                    className={inputStyles}
-                    required
-                  />
-                )}
+      {/* Glassmorphic Container */}
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        className="bg-white/10 backdrop-blur-2xl shadow-2xl rounded-3xl p-10 w-full max-w-4xl border border-white/20"
+      >
+        <h2 className="text-5xl font-extrabold text-center text-white drop-shadow-lg">
+          Insurance Churn Prediction
+        </h2>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6 mt-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-8">
+            {[
+              { name: "age", label: "Age", placeholder: "Enter age in years" },
+              { name: "earnings", label: "Annual Earnings", placeholder: "Enter amount in $" },
+              { name: "claimAmount", label: "Claim Amount", placeholder: "Enter claim amount" },
+              { name: "planAmount", label: "Plan Amount", placeholder: "Enter plan amount" },
+              { name: "creditScore", label: "Credit Score", placeholder: "300-850" },
+              { name: "daysPassed", label: "Days Since Last Claim", placeholder: "Enter days" },
+            ].map(({ name, label, placeholder }) => (
+              <div key={name} className="relative group">
+                <label className="block text-white/80 text-sm font-medium mb-2">{label}</label>
+                <input
+                  type="number"
+                  name={name}
+                  value={formData[name]}
+                  onChange={handleChange}
+                  placeholder={placeholder}
+                  className="w-full px-4 py-3 border border-gray-600 bg-gray-900/70 text-white rounded-lg focus:ring-2 focus:ring-purple-400 transition-all group-hover:scale-105"
+                  required
+                />
+              </div>
+            ))}
+
+            {/* Dropdown Fields */}
+            {[
+              { name: "gender", label: "Gender", options: ["Male", "Female"] },
+              { name: "maritalStatus", label: "Marital Status", options: ["Single", "Married"] },
+              { name: "autoInsurance", label: "Auto Insurance", options: ["Yes", "No"] },
+              { name: "healthInsurance", label: "Health Insurance", options: ["Yes", "No"] },
+              { name: "lifeInsurance", label: "Life Insurance", options: ["Yes", "No"] },
+              { name: "planType", label: "Plan Type", options: ["Basic", "Premium"] },
+            ].map(({ name, label, options }) => (
+              <div key={name} className="relative group">
+                <label className="block text-white/80 text-sm font-medium mb-2">{label}</label>
+                <select
+                  name={name}
+                  value={formData[name]}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-600 bg-gray-900/70 text-white rounded-lg focus:ring-2 focus:ring-purple-400 transition-all group-hover:scale-105"
+                >
+                  {options.map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
               </div>
             ))}
           </div>
-          
-          <button 
-            type="submit" 
-            className="w-full bg-black text-white py-4 rounded-lg hover:bg-gray-800 transition-all duration-300 mt-8 font-medium text-lg shadow-md hover:shadow-xl"
+
+          {/* Submit Button */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            type="submit"
+            className="w-full bg-purple-500 text-white py-4 rounded-lg hover:bg-purple-600 transition-all duration-300 font-medium text-lg shadow-lg hover:shadow-purple-500/50"
           >
-            Get Prediction
-          </button>
+            Get Prediction 🚀
+          </motion.button>
         </form>
 
+        {/* Error Message */}
         {error && (
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="mt-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-200"
+            className="mt-4 p-4 bg-red-500/30 text-white rounded-lg border border-red-400 text-center"
           >
             {error}
           </motion.p>
         )}
 
+        {/* Result Display */}
         {result && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-8 space-y-6"
+            className="mt-10 space-y-6 text-white"
           >
-            <div className="bg-gray-900 text-white p-6 rounded-lg shadow-lg">
-              <h3 className="text-xl font-semibold mb-4">Prediction Result</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-black/40 rounded-lg">
+            <div className="bg-gray-900/80 p-6 rounded-lg shadow-xl border border-white/20">
+              <h3 className="text-xl font-semibold mb-4 text-white">Prediction Result</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-gray-800 rounded-lg">
                   <p className="text-gray-400">Churn Probability</p>
-                  <p className="text-2xl font-bold">{result.churn_analysis.churn_probability.toFixed(2)}%</p>
+                  <p className="text-2xl font-bold text-purple-400">{result.churn_analysis.churn_probability.toFixed(2)}%</p>
                 </div>
-                <div className="p-4 bg-black/40 rounded-lg">
+                <div className="p-4 bg-gray-800 rounded-lg">
                   <p className="text-gray-400">Risk Status</p>
                   <p className="text-2xl font-bold">{result.churn_analysis.is_churn_risk ? "High Risk" : "Low Risk"}</p>
                 </div>
               </div>
             </div>
-
-            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-              <h4 className="text-lg font-semibold mb-4">Plan Recommendation</h4>
-              <div className="space-y-2">
-                <p>Recommended Plan: <span className="font-semibold">{result.plan_recommendation.recommended_plan_name}</span></p>
-                <p>Current Plan: <span className="font-semibold">{result.plan_recommendation.current_plan || "None"}</span></p>
-                <p className="text-gray-600">{result.plan_recommendation.plan_message}</p>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg border border-gray-200">
-              <h4 className="text-lg font-semibold mb-4">Customer Recommendations</h4>
-              {Object.entries(result.customer_recommendations).map(([category, recs]) => (
-                <div key={category} className="mb-4">
-                  <p className="font-medium text-gray-800 mb-2">{category.replace(/_/g, " ")}</p>
-                  <ul className="space-y-2">
-                    {recs.map((rec, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="mr-2">•</span>
-                        <span className="text-gray-600">{rec}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
           </motion.div>
         )}
-      </div>
+      </motion.div>
     </motion.div>
   );
 };
