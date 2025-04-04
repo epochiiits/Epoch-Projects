@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import { motion } from "framer-motion";
 
 const ChurnPred = () => {
   const [formData, setFormData] = useState({
@@ -16,7 +17,9 @@ const ChurnPred = () => {
     lifeInsurance: "Yes",
     planType: "Basic",
   });
+
   const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -24,7 +27,8 @@ const ChurnPred = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setError(null);
+
     const formattedData = {
       features: [
         parseFloat(formData.age),
@@ -47,74 +51,139 @@ const ChurnPred = () => {
       setResult(response.data);
     } catch (error) {
       console.error("Error making request:", error);
-      alert("Failed to get prediction. Check console for details.");
+      setError("Failed to get prediction. Please try again.");
     }
   };
 
+  const inputStyles = "w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-black focus:ring-1 focus:ring-black transition-all duration-200 outline-none bg-white hover:bg-gray-50";
+  const labelStyles = "block text-sm font-medium text-gray-700 mb-1";
+
+  const formFields = {
+    age: { label: "Age", placeholder: "Enter age in years" },
+    gender: { label: "Gender", options: ["Male", "Female"] },
+    earnings: { label: "Annual Earnings", placeholder: "Enter amount in dollars" },
+    claimAmount: { label: "Claim Amount", placeholder: "Enter claim amount" },
+    planAmount: { label: "Plan Amount", placeholder: "Enter plan amount" },
+    creditScore: { label: "Credit Score", placeholder: "Enter score (300-850)" },
+    maritalStatus: { label: "Marital Status", options: ["Single", "Married"] },
+    daysPassed: { label: "Days Since Last Claim", placeholder: "Enter number of days" },
+    autoInsurance: { label: "Auto Insurance", options: ["Yes", "No"] },
+    healthInsurance: { label: "Health Insurance", options: ["Yes", "No"] },
+    lifeInsurance: { label: "Life Insurance", options: ["Yes", "No"] },
+    planType: { label: "Plan Type", options: ["Basic", "Premium"] }
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="bg-white shadow-md rounded-lg p-6 w-full max-w-lg">
-        <h2 className="text-2xl font-bold mb-4 text-center">Insurance Churn Prediction</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <input type="number" name="age" placeholder="Age" value={formData.age} onChange={handleChange} className="input" required />
-            <select name="gender" value={formData.gender} onChange={handleChange} className="input">
-              <option>Male</option>
-              <option>Female</option>
-            </select>
-            <input type="number" name="earnings" placeholder="Annual Earnings" value={formData.earnings} onChange={handleChange} className="input" required />
-            <input type="number" name="claimAmount" placeholder="Claim Amount" value={formData.claimAmount} onChange={handleChange} className="input" required />
-            <input type="number" name="planAmount" placeholder="Plan Amount" value={formData.planAmount} onChange={handleChange} className="input" required />
-            <input type="number" name="creditScore" placeholder="Credit Score" value={formData.creditScore} onChange={handleChange} className="input" required />
-            <select name="maritalStatus" value={formData.maritalStatus} onChange={handleChange} className="input">
-              <option>Single</option>
-              <option>Married</option>
-            </select>
-            <input type="number" name="daysPassed" placeholder="Days Since Last Claim" value={formData.daysPassed} onChange={handleChange} className="input" required />
-            <select name="autoInsurance" value={formData.autoInsurance} onChange={handleChange} className="input">
-              <option>Yes</option>
-              <option>No</option>
-            </select>
-            <select name="healthInsurance" value={formData.healthInsurance} onChange={handleChange} className="input">
-              <option>Yes</option>
-              <option>No</option>
-            </select>
-            <select name="lifeInsurance" value={formData.lifeInsurance} onChange={handleChange} className="input">
-              <option>Yes</option>
-              <option>No</option>
-            </select>
-            <select name="planType" value={formData.planType} onChange={handleChange} className="input">
-              <option>Basic</option>
-              <option>Premium</option>
-            </select>
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4 md:p-8"
+    >
+      <div className="bg-white shadow-xl rounded-xl p-8 w-full max-w-4xl">
+        <h2 className="text-3xl font-bold mb-8 text-center text-black">Insurance Churn Prediction</h2>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
+            {Object.entries(formFields).map(([key, field]) => (
+              <div key={key}>
+                <label htmlFor={key} className={labelStyles}>
+                  {field.label}
+                </label>
+                {field.options ? (
+                  <select
+                    id={key}
+                    name={key}
+                    value={formData[key]}
+                    onChange={handleChange}
+                    className={inputStyles}
+                  >
+                    {field.options.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    id={key}
+                    type="number"
+                    name={key}
+                    placeholder={field.placeholder}
+                    value={formData[key]}
+                    onChange={handleChange}
+                    className={inputStyles}
+                    required
+                  />
+                )}
+              </div>
+            ))}
           </div>
-          <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition">Predict</button>
+          
+          <button 
+            type="submit" 
+            className="w-full bg-black text-white py-4 rounded-lg hover:bg-gray-800 transition-all duration-300 mt-8 font-medium text-lg shadow-md hover:shadow-xl"
+          >
+            Get Prediction
+          </button>
         </form>
+
+        {error && (
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-200"
+          >
+            {error}
+          </motion.p>
+        )}
+
         {result && (
-          <div className="mt-4 p-4 bg-gray-200 rounded-md">
-            <h3 className="text-lg font-semibold">Prediction Result:</h3>
-            <p>Churn Probability: <span className="font-bold">{result.churn_analysis.churn_probability}</span></p>
-            <p>Churn Risk: <span className="font-bold">{result.churn_analysis.is_churn_risk ? "Yes" : "No"}</span></p>
-            <p>Recommendation: <span className="font-bold">{result.churn_analysis.recommendation}</span></p>
-            <h3 className="text-lg font-semibold mt-3">Plan Recommendation:</h3>
-            <p>Recommended Plan: <span className="font-bold">{result.plan_recommendation.recommended_plan_name}</span></p>
-            <p>Plan Message: <span className="font-bold">{result.plan_recommendation.plan_message}</span></p>
-            <h3 className="text-lg font-semibold mt-3">Customer Analysis:</h3>
-            <p>Customer Value: <span className="font-bold">{result.customer_analysis.customer_value}</span></p>
-            <p>Value Category: <span className="font-bold">{result.customer_analysis.value_category}</span></p>
-            <p>Segment: <span className="font-bold">{result.customer_analysis.customer_segment}</span></p>
-            <p>Revenue Potential: <span className="font-bold">{result.customer_analysis.revenue_potential}</span></p>
-            <p>Cross-sell Opportunity: <span className="font-bold">{result.customer_analysis.cross_sell_opportunity}</span></p>
-            <h3 className="text-lg font-semibold mt-3">Value Recommendations:</h3>
-            <ul className="list-disc pl-5">
-              {result.customer_analysis.value_recommendations.map((rec, index) => (
-                <li key={index}>{rec}</li>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 space-y-6"
+          >
+            <div className="bg-gray-900 text-white p-6 rounded-lg shadow-lg">
+              <h3 className="text-xl font-semibold mb-4">Prediction Result</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-black/40 rounded-lg">
+                  <p className="text-gray-400">Churn Probability</p>
+                  <p className="text-2xl font-bold">{result.churn_analysis.churn_probability.toFixed(2)}%</p>
+                </div>
+                <div className="p-4 bg-black/40 rounded-lg">
+                  <p className="text-gray-400">Risk Status</p>
+                  <p className="text-2xl font-bold">{result.churn_analysis.is_churn_risk ? "High Risk" : "Low Risk"}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+              <h4 className="text-lg font-semibold mb-4">Plan Recommendation</h4>
+              <div className="space-y-2">
+                <p>Recommended Plan: <span className="font-semibold">{result.plan_recommendation.recommended_plan_name}</span></p>
+                <p>Current Plan: <span className="font-semibold">{result.plan_recommendation.current_plan || "None"}</span></p>
+                <p className="text-gray-600">{result.plan_recommendation.plan_message}</p>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg border border-gray-200">
+              <h4 className="text-lg font-semibold mb-4">Customer Recommendations</h4>
+              {Object.entries(result.customer_recommendations).map(([category, recs]) => (
+                <div key={category} className="mb-4">
+                  <p className="font-medium text-gray-800 mb-2">{category.replace(/_/g, " ")}</p>
+                  <ul className="space-y-2">
+                    {recs.map((rec, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="mr-2">•</span>
+                        <span className="text-gray-600">{rec}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
-            </ul>
-          </div>
+            </div>
+          </motion.div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

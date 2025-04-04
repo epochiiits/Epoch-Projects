@@ -105,8 +105,7 @@ def generate_recommendations(target_customer):
         insurance_recs.append("Consider life insurance protection - beneficial for customers similar to you")
 
     if insurance_recs:
-        recommendations['Insurance_Options'] = insurance_recs
-    print(recommendations["Insurance_Options"])
+        recommendations["Insurance_Options"] = insurance_recs
     # 2. Analyze claim behaviors of similar customers
     avg_claim = similar_customers_data['Claim Amount ($)'].mean()
     if target_customer['Claim Amount ($)'] < avg_claim - 0.5:
