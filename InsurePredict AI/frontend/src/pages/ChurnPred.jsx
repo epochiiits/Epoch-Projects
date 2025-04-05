@@ -28,32 +28,48 @@ const ChurnPred = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-
-    const formattedData = {
-      features: [
-        parseFloat(formData.age),
-        formData.gender === "Male" ? 1 : 0,
-        parseFloat(formData.earnings),
-        parseFloat(formData.claimAmount),
-        parseFloat(formData.planAmount),
-        parseInt(formData.creditScore),
-        formData.maritalStatus === "Married" ? 1 : 0,
-        parseInt(formData.daysPassed),
-        formData.autoInsurance === "Yes" ? 1 : 0,
-        formData.healthInsurance === "Yes" ? 1 : 0,
-        formData.lifeInsurance === "Yes" ? 1 : 0,
-        formData.planType === "Basic" ? 0 : 1,
-      ],
+  
+    // 🧠 Construct the `features` array
+    const features = [
+      parseFloat(formData.age),
+      formData.gender === "Male" ? 1 : 0,
+      parseFloat(formData.earnings),
+      parseFloat(formData.claimAmount),
+      parseFloat(formData.planAmount),
+      parseInt(formData.creditScore),
+      formData.maritalStatus === "Married" ? 1 : 0,
+      parseInt(formData.daysPassed),
+      formData.autoInsurance === "Yes" ? 1 : 0,
+      formData.healthInsurance === "Yes" ? 1 : 0,
+      formData.lifeInsurance === "Yes" ? 1 : 0,
+      formData.planType === "Basic" ? 0 : 1,
+    ];
+  
+    // 🧠 Construct the raw_data object to save
+    const raw_data = {
+      age: parseFloat(formData.age),
+      gender: formData.gender === "Male" ? "M" : "F",
+      earnings: parseFloat(formData.earnings),
+      claim_amount: parseFloat(formData.claimAmount),
+      insurance_plan_amount: parseFloat(formData.planAmount),
+      credit_score: formData.creditScore === "1" || formData.creditScore === "true" || formData.creditScore === true,
+      marital_status: formData.maritalStatus === "Married" ? "M" : "S",
+      days_passed: parseInt(formData.daysPassed),
+      type_of_insurance: "health", // default; update if needed
+      plan_type: formData.planType === "Basic" ? "basic" : "premium"
     };
-
+  
+    const payload = { features, raw_data };
+  
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/predict/", formattedData);
+      const response = await axios.post("http://127.0.0.1:8000/api/predict/", payload);
       setResult(response.data);
     } catch (error) {
       console.error("Error making request:", error);
       setError("Failed to get prediction. Please try again.");
     }
   };
+  
 
   return (
     <motion.div
