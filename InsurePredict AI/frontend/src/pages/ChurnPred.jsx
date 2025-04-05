@@ -162,6 +162,29 @@ const ChurnPred = () => {
                   <p className="text-gray-400">Risk Status</p>
                   <p className="text-2xl font-bold">{result.churn_analysis.is_churn_risk ? "High Risk" : "Low Risk"}</p>
                 </div>
+                <p>Recommendation: <span className="font-bold">{result.churn_analysis.recommendation}</span></p>
+                <h3 className="text-lg font-semibold mt-3">Plan Recommendation:</h3>
+                <p>Recommended Plan: <span className="font-bold">{result.plan_recommendation.recommended_plan_name}</span></p>
+                <p>Plan Message: <span className="font-bold">{result.plan_recommendation.plan_message}</span></p>
+                <h3 className="text-lg font-semibold mt-3">Customer Analysis:</h3>
+                <p>Customer Value: <span className="font-bold">{result.customer_analysis.customer_value}</span></p>
+                <p>Value Category: <span className="font-bold">{result.customer_analysis.value_category}</span></p>
+                <p>Segment: <span className="font-bold">{result.customer_analysis.customer_segment}</span></p>
+                <p>Revenue Potential: <span className="font-bold">{result.customer_analysis.revenue_potential}</span></p>
+                <p>Cross-sell Opportunity: <span className="font-bold">{result.customer_analysis.cross_sell_opportunity}</span></p>
+                
+                {/* Customer Recommendations */}
+                <h3 className="text-lg font-semibold mt-3">Customer Recommendations:</h3>
+                {result.customer_recommendations && Object.keys(result.customer_recommendations).map((key) => (
+                  <div key={key} className="mt-2">
+                    <p className="font-medium text-purple-400">{key.replace(/_/g, " ")}:</p>
+                    <ul className="list-disc list-inside pl-4">
+                      {result.customer_recommendations[key].map((recommendation, index) => (
+                        <li key={index} className="text-sm">{recommendation}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </div>
             </div>
           </motion.div>
