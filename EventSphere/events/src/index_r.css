@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.your-card-class {
+    backface-visibility: hidden;
+    will-change: transform;
+  }
