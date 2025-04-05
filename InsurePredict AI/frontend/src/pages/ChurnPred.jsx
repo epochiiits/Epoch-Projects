@@ -61,7 +61,6 @@ const ChurnPred = () => {
       animate={{ opacity: 1 }}
       className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-black p-8"
     >
-      {/* Glassmorphic Container */}
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -72,7 +71,6 @@ const ChurnPred = () => {
           Insurance Churn Prediction
         </h2>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6 mt-10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-8">
             {[
@@ -97,7 +95,6 @@ const ChurnPred = () => {
               </div>
             ))}
 
-            {/* Dropdown Fields */}
             {[
               { name: "gender", label: "Gender", options: ["Male", "Female"] },
               { name: "maritalStatus", label: "Marital Status", options: ["Single", "Married"] },
@@ -122,7 +119,6 @@ const ChurnPred = () => {
             ))}
           </div>
 
-          {/* Submit Button */}
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -133,7 +129,6 @@ const ChurnPred = () => {
           </motion.button>
         </form>
 
-        {/* Error Message */}
         {error && (
           <motion.p
             initial={{ opacity: 0 }}
@@ -144,7 +139,6 @@ const ChurnPred = () => {
           </motion.p>
         )}
 
-        {/* Result Display */}
         {result && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -156,36 +150,39 @@ const ChurnPred = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-gray-800 rounded-lg">
                   <p className="text-gray-400">Churn Probability</p>
-                  <p className="text-2xl font-bold text-purple-400">{result.churn_analysis.churn_probability.toFixed(2)}%</p>
+                  <p className="text-2xl font-bold text-purple-400">
+                    {(result.churn_analysis.churn_probability * 100).toFixed(2)}%
+                  </p>
                 </div>
                 <div className="p-4 bg-gray-800 rounded-lg">
                   <p className="text-gray-400">Risk Status</p>
-                  <p className="text-2xl font-bold">{result.churn_analysis.is_churn_risk ? "High Risk" : "Low Risk"}</p>
+                  <p className="text-2xl font-bold">
+                    {result.churn_analysis.is_churn_risk ? "High Risk" : "Low Risk"}
+                  </p>
                 </div>
-                <p>Recommendation: <span className="font-bold">{result.churn_analysis.recommendation}</span></p>
-                <h3 className="text-lg font-semibold mt-3">Plan Recommendation:</h3>
-                <p>Recommended Plan: <span className="font-bold">{result.plan_recommendation.recommended_plan_name}</span></p>
-                <p>Plan Message: <span className="font-bold">{result.plan_recommendation.plan_message}</span></p>
-                <h3 className="text-lg font-semibold mt-3">Customer Analysis:</h3>
-                <p>Customer Value: <span className="font-bold">{result.customer_analysis.customer_value}</span></p>
-                <p>Value Category: <span className="font-bold">{result.customer_analysis.value_category}</span></p>
-                <p>Segment: <span className="font-bold">{result.customer_analysis.customer_segment}</span></p>
-                <p>Revenue Potential: <span className="font-bold">{result.customer_analysis.revenue_potential}</span></p>
-                <p>Cross-sell Opportunity: <span className="font-bold">{result.customer_analysis.cross_sell_opportunity}</span></p>
-                
-                {/* Customer Recommendations */}
-                <h3 className="text-lg font-semibold mt-3">Customer Recommendations:</h3>
-                {result.customer_recommendations && Object.keys(result.customer_recommendations).map((key) => (
-                  <div key={key} className="mt-2">
-                    <p className="font-medium text-purple-400">{key.replace(/_/g, " ")}:</p>
-                    <ul className="list-disc list-inside pl-4">
-                      {result.customer_recommendations[key].map((recommendation, index) => (
-                        <li key={index} className="text-sm">{recommendation}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
               </div>
+
+              <p className="mt-4">Recommendation: <span className="font-bold">{result.churn_analysis.recommendation}</span></p>
+
+              <h3 className="text-lg font-semibold mt-6">Plan Recommendation:</h3>
+              <p>Recommended Plan: <span className="font-bold">{result.plan_recommendation.recommended_plan_name}</span></p>
+              <p>Current Plan: <span className="font-bold">{result.plan_recommendation.current_plan || "None"}</span></p>
+              <p>Plan Message: <span className="font-bold">{result.plan_recommendation.plan_message}</span></p>
+
+              <h3 className="text-lg font-semibold mt-6">Customer Recommendations:</h3>
+              {result.customer_recommendations && Object.entries(result.customer_recommendations).map(([key, recs]) => (
+              <div key={key} className="mt-4">
+                <h4 className="text-md font-semibold text-purple-300">
+                  {key.replace(/_/g, " ").replace(/\b\w/g, char => char.toUpperCase())}
+                </h4>
+                <ul className="list-disc list-inside ml-4 mt-2 text-sm text-white/90">
+                  {recs.map((recommendation, index) => (
+                    <li key={index}>{recommendation}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+
             </div>
           </motion.div>
         )}
