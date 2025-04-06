@@ -92,7 +92,15 @@ def prediction_form(request):
 
 
 def save_customer_data(data, churn_prob, recommendation):
+    from django.db.models import Max
+    from django.db import models
+
+    # Get the current max id
+    max_id = CustomerRecord.objects.aggregate(Max('id'))['id__max'] or 0
+    next_id = max_id + 1
     CustomerRecord.objects.create(
+
+    id = models.IntegerField(primary_key=True),
     age=data['age'],
     gender=data['gender'],
     earnings=data['earnings'],
