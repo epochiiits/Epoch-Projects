@@ -7,7 +7,7 @@ const Event = require("../models/event");
 router.get("/profile/:id", async function (req, res) {
   try {
     const { id } = req.params;
-    const profile = await user.findById(id);
+    const profile = await User.findById(id);
     if (!profile) {
       return res.status(404).send({ error: "Profile not found" });
     }
@@ -21,7 +21,7 @@ router.get("/profile/:id", async function (req, res) {
 router.get("/profile/google/:id", async function (req, res) {
   try {
     const { id } = req.params;
-    const profile = await user.findOne({ googleId: id });
+    const profile = await User.findOne({ googleId: id });
     if (!profile) {
       return res.status(404).send({ error: "Profile not found" });
     }
@@ -45,9 +45,30 @@ router.post("/register-event", async (req, res) => {
   try {
     const userid = req.body?.userid;
     const eventId = req.body?.eventId;
+    const leadInfo = req.body?.leadInfo;
+    const isTeam = req.body?.isTeam || false;
+    const teamName = req.body?.teamName || null;
+    const members = req.body?.members || [];
 
     if (!userid || !eventId) {
       return res.status(400).json({ error: "Missing userid or event ID" });
+    }
+
+    if (!leadInfo || !leadInfo.name || !leadInfo.email || !leadInfo.phone) {
+      return res.status(400).json({ error: "Missing lead info" });
+    }
+
+    const user = await User.findById(userid);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    if (user.email != leadInfo.email) {
+      return res.status(400).json({ error: "Email mismatch" });
+    }
+    if (user.events.includes(eventId)) {
+      return res
+        .status(400)
+        .json({ error: "User already registered for the event" });
     }
 
     // Update the user's registered events
@@ -64,16 +85,25 @@ router.post("/register-event", async (req, res) => {
     // Update the event's registered users
     const updatedEvent = await Event.findByIdAndUpdate(
       eventId,
-      { $push: { participants: userid } }, // Add the user ID to the event's `participants` array
+      {
+        $push: {
+          participants: {
+            lead: userid,
+            registrationData: isTeam
+              ? {
+                  teamName,
+                  members,
+                }
+              : null,
+          },
+        },
+      }, // Add the user ID to the event's `participants` array
       { new: true } // Return the updated event document
     );
 
     if (!updatedEvent) {
       return res.status(404).json({ error: "Event not found" });
     }
-
-    console.log("Received userId:", userid);
-    console.log("Received eventId:", eventId);
 
     res.status(200).json({
       message: "User registered for the event successfully",
@@ -108,7 +138,7 @@ router.post("/unregister-event", async (req, res) => {
 
     const updatedEvent = await Event.findByIdAndUpdate(
       eventId,
-      { $pull: { participants: userid } },
+      { $pull: { participants: { lead: userid } } },
       { new: true }
     );
 
@@ -121,6 +151,31 @@ router.post("/unregister-event", async (req, res) => {
       user: updatedUser,
       event: updatedEvent,
     });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Internal Server Error", details: error.message });
+  }
+});
+
+router.get("/check-registration-status", async (req, res) => {
+  try {
+    const userid = req.query.userid;
+    const eventId = req.query.eventId;
+
+    if (!userid || !eventId) {
+      return res.status(400).json({ error: "Missing userid or event ID" });
+    }
+
+    const user = await User.findById(userid);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Check if the user is registered for the event
+    const isRegistered = user.events.includes(eventId);
+
+    res.status(200).json({ isRegistered });
   } catch (error) {
     res
       .status(500)

@@ -54,6 +54,16 @@ export const Apis = {
     }
   },
   
+  async fetchEventDetails(eventId) {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/events/${eventId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching event details:', error);
+      throw error;
+    }
+  },
+
   async acceptEvent(eventId) {
     try {
       const response = await axios.post(`${API_BASE_URL}/events/${eventId}/accept`)

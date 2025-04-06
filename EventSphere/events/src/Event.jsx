@@ -15,86 +15,51 @@ import {
   Trophy,
   DollarSign,
   Building,
+  Award,
+  Ticket,
+  Loader2,
 } from "lucide-react";
-import { useState, useTransition } from "react";
-
-// Sample event data matching MongoDB schema
-const eventDetails = {
-  title: "Tech Conference 2024",
-  event_type: "Conference",
-  description:
-    "Join us for the biggest tech conference of the year, featuring industry leaders, innovative workshops, and networking opportunities.",
-  clubs: [
-    {
-      _id: "1",
-      name: "Tech Club",
-      imageUrl: "/assets/epoch.jpg",
-    },
-  ],
-  imageUrl: "",
-  date: new Date("2024-03-15"),
-  time: "10:00 AM",
-  venue: "Main Auditorium",
-  isTeamEvent: true,
-  teamSize: 4,
-  prizeMoney: 5000,
-  isPaid: true,
-  amount: 100,
-  category: "Technology",
-  contactInfo: "+1 (555) 123-4567",
-  status: "upcoming",
-  about:
-    "A comprehensive tech conference covering the latest trends in technology.",
-  timeline: [
-    {
-      time: "10:00 AM",
-      speaker: "Sarah Johnson",
-      topic: "Future of AI",
-      description:
-        "Exploring the latest developments in artificial intelligence",
-    },
-    {
-      time: "2:00 PM",
-      speaker: "Michael Chen",
-      topic: "Web3 Technologies",
-      description: "Understanding blockchain and decentralized applications",
-    },
-  ],
-  ratings: [
-    {
-      name: "John Doe",
-      profile: "/placeholder.svg?height=40&width=40",
-      rating: 5,
-      comment:
-        "Amazing conference! The speakers were incredibly knowledgeable.",
-      createdAt: new Date("2024-01-15"),
-    },
-    {
-      name: "Jane Smith",
-      profile: "/placeholder.svg?height=40&width=40",
-      rating: 4,
-      comment: "Great networking opportunities. Would definitely attend again.",
-      createdAt: new Date("2024-01-14"),
-    },
-  ],
-  prices: ["Early Bird: $80", "Regular: $100", "VIP: $150"],
-  remarks: ["Bring your laptop", "Certificate provided", "Lunch included"],
-};
+import { useState, useEffect, useTransition } from "react";
+import { useParams } from "react-router-dom";
+import { Apis } from "./apiserveices/api";
+import Cookies from "js-cookie";
 
 export default function EventDetails() {
+  const { id } = useParams();
   const [isPending, startTransition] = useTransition();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [name, setName] = useState("");
-  const [ratings, setRatings] = useState(eventDetails.ratings);
+  const [modalopen, setmodalopen] = useState(false)
+  const [ratings, setRatings] = useState([]);
   const [error, setError] = useState("");
+  const [event, setEvent] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const userid = Cookies.get("user");
+  const closemodal = () => {
+    setmodalopen(false)
+  }
+  useEffect(() => {
+    const fetchEventDetails = async () => {
+      try {
+        const eventData = await Apis.fetchEventDetails(id);
+        setEvent(eventData);
+        setRatings(eventData.ratings || []);
+        setIsLoading(false);
+      } catch (err) {
+        console.error("Failed to fetch event:", err);
+        setError("Failed to load event details");
+        setIsLoading(false);
+      }
+    };
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    fetchEventDetails();
+  }, [id]);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "TBA";
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
   const handleSubmit = (e) => {
@@ -132,14 +97,46 @@ export default function EventDetails() {
     });
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-xl text-red-500">{error}</div>
+      </div>
+    );
+  }
+
+  if (!event) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-xl">Event not found</div>
+      </div>
+    );
+  }
+
+  // Determine if event is upcoming or past
+  const eventDate = new Date(event.date);
+  const now = new Date();
+  const isUpcoming = eventDate >= now;
+
   return (
     <div className="min-h-screen bg-black">
       {/* Hero Section */}
       <div className="relative h-[50vh] w-full overflow-hidden">
         <img
-          src={eventDetails.imageUrl || "/assets/EventBg.jpg"}
-          alt={eventDetails.title}
+          src={event.imageUrl || "/assets/EventBg.jpg"}
+          alt={event.title}
           className="absolute inset-0 w-full h-full object-cover"
+          onError={(e) => {
+            e.target.src = "/assets/EventBg.jpg";
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
 
@@ -151,33 +148,45 @@ export default function EventDetails() {
               className="space-y-4"
             >
               <div className="flex gap-2">
-                {eventDetails.clubs.map((club) => (
-                  <a key={club._id} href={`/club/${club.name}`}>
+                {event.clubs && event.clubs.map((club) => (
+                  <a key={club._id} href={`/club/${club._id}`}>
                     <img
-                      key={club._id}
                       src={club.imageUrl || "/placeholder.svg"}
                       alt={club.name}
                       className="h-12 w-12 object-cover rounded-full border-2 border-purple-500"
+                      onError={(e) => {
+                        e.target.src = "/placeholder.svg";
+                      }}
                     />
                   </a>
                 ))}
               </div>
               <h1 className="text-4xl sm:text-6xl font-bold text-white">
-                {eventDetails.title}
+                {event.title}
               </h1>
               <div className="flex flex-wrap gap-4 text-white/80">
                 <span className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  {formatDate(eventDetails.date)}
+                  {formatDate(event.date)}
                 </span>
                 <span className="flex items-center gap-2">
                   <Clock className="h-5 w-5" />
-                  {eventDetails.time}
+                  {event.time || "TBA"}
                 </span>
                 <span className="flex items-center gap-2">
-                  <Building className="h-5 w-5" />
-                  {eventDetails.venue}
+                  <MapPin className="h-5 w-5" />
+                  {event.venue || "Location not specified"}
                 </span>
+                {event.category && (
+                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-purple-600/80 text-white">
+                    {event.category}
+                  </span>
+                )}
+                {event.event_type && (
+                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-600/80 text-white">
+                    {event.event_type}
+                  </span>
+                )}
               </div>
             </motion.div>
           </div>
@@ -193,27 +202,27 @@ export default function EventDetails() {
             animate={{ opacity: 1, y: 0 }}
             className="grid gap-6 sm:grid-cols-2 md:grid-cols-3"
           >
-            {eventDetails.isTeamEvent && (
+            {event.isTeamEvent && (
               <div className="p-6 rounded-xl bg-white/5 backdrop-blur-sm space-y-2">
                 <Users className="h-6 w-6 text-purple-500" />
                 <h3 className="font-semibold text-purple-500">Team Event</h3>
                 <p className="text-gray-300">
-                  Team Size: {eventDetails.teamSize}
+                  Team Size: {event.teamSize || 1}
                 </p>
               </div>
             )}
-            {eventDetails.prizeMoney > 0 && (
+            {event.prizeMoney > 0 && (
               <div className="p-6 rounded-xl bg-white/5 backdrop-blur-sm space-y-2">
-                <Trophy className="h-6 w-6 text-purple-500" />
+                <Award className="h-6 w-6 text-purple-500" />
                 <h3 className="font-semibold text-purple-500">Prize Money</h3>
-                <p className="text-gray-300">${eventDetails.prizeMoney}</p>
+                <p className="text-gray-300">${event.prizeMoney}</p>
               </div>
             )}
-            {eventDetails.isPaid && (
+            {event.isPaid && (
               <div className="p-6 rounded-xl bg-white/5 backdrop-blur-sm space-y-2">
-                <DollarSign className="h-6 w-6 text-purple-500" />
+                <Ticket className="h-6 w-6 text-purple-500" />
                 <h3 className="font-semibold text-purple-500">Entry Fee</h3>
-                <p className="text-gray-300">${eventDetails.amount}</p>
+                <p className="text-gray-300">${event.amount || 0}</p>
               </div>
             )}
           </motion.section>
@@ -228,45 +237,51 @@ export default function EventDetails() {
               About the Event
             </h2>
             <p className="text-gray-300 leading-relaxed">
-              {eventDetails.about || eventDetails.description}
+              {event.about || event.description || "No description available"}
             </p>
           </motion.section>
 
           {/* Timeline */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
-            <h2 className="text-2xl font-semibold text-purple-500">
-              Event Timeline
-            </h2>
-            <div className="space-y-6">
-              {eventDetails.timeline.map((item, index) => (
-                <div
-                  key={index}
-                  className="p-6 rounded-xl bg-white/5 backdrop-blur-sm space-y-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <User className="h-5 w-5 text-purple-500" />
-                    <div>
-                      <h3 className="text-purple-500 font-semibold">
-                        {item.speaker}
-                      </h3>
-                      <p className="text-sm text-gray-400">{item.topic}</p>
+          {event.timeline && event.timeline.length > 0 && (
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
+            >
+              <h2 className="text-2xl font-semibold text-purple-500">
+                Event Timeline
+              </h2>
+              <div className="space-y-6">
+                {event.timeline.map((item, index) => (
+                  <div
+                    key={index}
+                    className="p-6 rounded-xl bg-white/5 backdrop-blur-sm space-y-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <User className="h-5 w-5 text-purple-500" />
+                      <div>
+                        <h3 className="text-purple-500 font-semibold">
+                          {item.speaker || "Speaker"}
+                        </h3>
+                        <p className="text-sm text-gray-400">
+                          {item.topic || "Topic"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="space-y-1 text-gray-300">
+                      <p className="text-sm">Time: {item.time || "TBA"}</p>
+                      <p className="text-sm">
+                        {item.description || "No description"}
+                      </p>
                     </div>
                   </div>
-                  <div className="space-y-1 text-gray-300">
-                    <p className="text-sm">Time: {item.time}</p>
-                    <p className="text-sm">{item.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.section>
+                ))}
+              </div>
+            </motion.section>
+          )}
 
           {/* Prices */}
-          {eventDetails.prices.length > 0 && (
+          {event.prices && event.prices.length > 0 && (
             <motion.section
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -276,7 +291,7 @@ export default function EventDetails() {
                 Ticket Prices
               </h2>
               <ul className="grid gap-3">
-                {eventDetails.prices.map((price, index) => (
+                {event.prices.map((price, index) => (
                   <li
                     key={index}
                     className="flex items-center gap-3 text-gray-300"
@@ -290,7 +305,7 @@ export default function EventDetails() {
           )}
 
           {/* Important Remarks */}
-          {eventDetails.remarks.length > 0 && (
+          {event.remarks && event.remarks.length > 0 && (
             <motion.section
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -300,7 +315,7 @@ export default function EventDetails() {
                 Important Remarks
               </h2>
               <ul className="grid gap-3">
-                {eventDetails.remarks.map((remark, index) => (
+                {event.remarks.map((remark, index) => (
                   <li
                     key={index}
                     className="flex items-center gap-3 text-gray-300"
@@ -325,7 +340,7 @@ export default function EventDetails() {
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-gray-300">
                 <Phone className="h-5 w-5 text-purple-500" />
-                <span>{eventDetails.contactInfo}</span>
+                <span>{event.contactInfo || "Contact not available"}</span>
               </div>
             </div>
           </motion.section>
@@ -422,6 +437,9 @@ export default function EventDetails() {
                         src={rating.profile || "/placeholder.svg"}
                         alt={rating.name}
                         className="h-10 w-10 rounded-full object-cover"
+                        onError={(e) => {
+                          e.target.src = "/placeholder.svg";
+                        }}
                       />
                       <div className="space-y-1">
                         <h3 className="font-semibold text-purple-500">
@@ -450,8 +468,21 @@ export default function EventDetails() {
               ))}
             </div>
           </motion.section>
-
-          <RegisterEvent eventId={1234} userId={1234} />
+          <button
+              onClick={() => setmodalopen(true)}
+              className="px-8 py-3 bg-purple-900 text-white rounded-lg hover:bg-purple-800 transition duration-300 flex items-center gap-2"
+            >
+              <User className="h-5 w-5" />
+              Register Now
+            </button>
+          {/* Registration Component */}
+          {isUpcoming && modalopen&&  (
+            <RegisterEvent
+              userId={userid}
+              event={event}
+              onClose={closemodal}
+            />
+          )}
         </div>
       </div>
     </div>

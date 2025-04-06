@@ -9,6 +9,9 @@ import {
   Search,
   Filter,
   LogOut,
+  Award,
+  User,
+  Ticket,
 } from "lucide-react";
 import { Apis } from "./apiserveices/api";
 
@@ -22,10 +25,7 @@ export default function EventsPage() {
     const loadEvents = async () => {
       try {
         const fetchedEvents = await Apis.fetchEvents();
-
-        // Ensure fetchedEvents is an array
         const safeEvents = Array.isArray(fetchedEvents) ? fetchedEvents : [];
-
         setEvents(safeEvents);
         setIsLoading(false);
       } catch (error) {
@@ -38,7 +38,6 @@ export default function EventsPage() {
     loadEvents();
   }, []);
 
-  // Loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -47,7 +46,6 @@ export default function EventsPage() {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -55,6 +53,18 @@ export default function EventsPage() {
       </div>
     );
   }
+
+  // Filter events based on active tab
+  const filteredEvents = events.filter((event) => {
+    const eventDate = new Date(event.date);
+    const now = new Date();
+    
+    if (activeTab === "upcoming") {
+      return eventDate >= now;
+    } else {
+      return eventDate < now;
+    }
+  });
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -105,12 +115,6 @@ export default function EventsPage() {
               <option value="sports">Sports</option>
               <option value="cultural">Cultural</option>
             </select>
-            <select className="w-full md:w-auto px-3 py-2 bg-white/10 border border-white/20 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-600">
-              <option value="">All Clubs</option>
-              <option value="coding">Coding Club</option>
-              <option value="sports">Sports Club</option>
-              <option value="drama">Drama Club</option>
-            </select>
           </div>
         </div>
       </section>
@@ -147,62 +151,85 @@ export default function EventsPage() {
             Filters
           </button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events
-            // .filter((event) => event.status === activeTab)
-            .filter((event) => event.status !== "pending")
-            .map((event) => (
+        
+        {filteredEvents.length === 0 ? (
+          <div className="text-center py-12 text-gray-400">
+            No {activeTab} events found
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredEvents.map((event) => (
               <EventCard
                 key={event._id || event.id || Math.random()}
                 event={event}
               />
             ))}
-        </div>
+          </div>
+        )}
       </section>
     </div>
   );
 }
 
 function EventCard({ event }) {
-  // Add null checks in the component
   if (!event) return null;
 
+  // Format date to be more readable
+  const formatDate = (dateString) => {
+    if (!dateString) return "TBA";
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
   const {
+    _id,
     title = "Untitled Event",
     description = "No description available",
-    date = "TBA",
+    date,
     time = "TBA",
     venue = "Location not specified",
-    teamSize = "N/A",
-    contact = "Contact not available",
-    price = 0,
-    prize = 0,
-    categories = [],
-    image = "/placeholder.svg",
-    status = "upcoming",
+    isTeamEvent = false,
+    teamSize = 1,
+    contactInfo = "Contact not available",
+    isPaid = false,
+    amount = 0,
+    prizeMoney = 0,
+    category = "General",
+    imageUrl = "/placeholder.svg",
+    event_type,
+    participants = [],
+    ratings = [],
   } = event;
+
+  // Determine if event is upcoming or past
+  const eventDate = new Date(date);
+  const now = new Date();
+  const isUpcoming = eventDate >= now;
 
   return (
     <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden group hover:bg-white/10 transition-all duration-300 hover:scale-[1.02]">
       <div className="relative h-48 w-full overflow-hidden">
         <img
-          src={image}
+          src={imageUrl || "/placeholder.svg"}
           alt={title}
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+          onError={(e) => {
+            e.target.src = "/placeholder.svg";
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
         <div className="absolute bottom-4 left-4 right-4 flex gap-2">
-          {categories.map((category) => (
-            <span
-              key={category}
-              className="px-2 py-1 text-xs font-semibold rounded-full bg-purple-600/80 text-white"
-            >
-              {category}
+          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-purple-600/80 text-white">
+            {category}
+          </span>
+          {event_type && (
+            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-600/80 text-white">
+              {event_type}
             </span>
-          ))}
-          {price > 0 && (
-            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-emerald-600/80 text-white">
-              Paid
+          )}
+          {isPaid && (
+            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-emerald-600/80 text-white flex items-center">
+              <Ticket className="w-3 h-3 mr-1" /> ${amount}
             </span>
           )}
         </div>
@@ -212,16 +239,18 @@ function EventCard({ event }) {
           {title}
         </h3>
         <p className="text-gray-400 text-sm mb-4 line-clamp-2">{description}</p>
-        {prize > 0 && (
+        
+        {prizeMoney > 0 && (
           <div className="flex items-center gap-2 text-yellow-500 mb-4">
-            <DollarSign className="w-4 h-4" />
-            <span className="font-bold">Prize pool: ${prize}</span>
+            <Award className="w-4 h-4" />
+            <span className="font-bold">Prize pool: ${prizeMoney}</span>
           </div>
         )}
+        
         <div className="space-y-2 text-gray-400 text-sm">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4" />
-            <span>{date}</span>
+            <span>{formatDate(date)}</span>
           </div>
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4" />
@@ -233,16 +262,37 @@ function EventCard({ event }) {
           </div>
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4" />
-            <span>Team: {teamSize}</span>
+            <span>
+              {isTeamEvent ? `Team (${teamSize} members)` : "Individual"}
+            </span>
           </div>
+          {participants.length > 0 && (
+            <div className="flex items-center gap-2">
+              <User className="w-4 h-4" />
+              <span>{participants.length} registered</span>
+            </div>
+          )}
+          {ratings.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Star className="w-4 h-4 text-yellow-400" />
+              <span>
+                {(
+                  ratings.reduce((sum, rating) => sum + rating.rating, 0) /
+                  ratings.length
+                ).toFixed(1)}{" "}
+                ({ratings.length} reviews)
+              </span>
+            </div>
+          )}
         </div>
       </div>
       <div className="px-6 py-4 border-t border-white/10 flex justify-between items-center">
         <div className="flex items-center gap-2 text-sm text-gray-400">
           <Phone className="w-4 h-4" />
-          <span>{contact}</span>
+          <span>{contactInfo}</span>
         </div>
-        <button
+        <a
+          href={`/event/${_id}`}
           className={`px-4 py-2 rounded-md font-medium transition-all duration-300 ${
            
                "bg-purple-600 text-white hover:bg-purple-700 hover:scale-105"}`}

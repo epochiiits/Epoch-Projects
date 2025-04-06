@@ -36,8 +36,12 @@ const Nav = () => {
         const response = await axios.get(`${Base_Url}/auth/google`, {
           params: { tokens: authResult },
         });
+        console.log("Google login response:", response.data);
         if (response.data.message) {
           Cookies.set("user", response.data.userId);
+          Cookies.set("profile", response.data.picture);
+          Cookies.set("name", response.data.name);
+          Cookies.set("email", response.data.email);
           setUserProfile(response.data); // Update state with user data
           navigate("/events");
         }

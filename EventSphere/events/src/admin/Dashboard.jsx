@@ -21,7 +21,7 @@ export default function AdminDashboard() {
       const events = await Apis.fetchEvents()
       setEvents(events.filter(event => event.status === 'accepted'))
       setEventReqs(events.filter(event => event.status === 'pending'))
-      setRequestCount(eventReqs.length)
+      
     } catch (error) {
       console.error('Error fetching events:', error)
     } finally {
@@ -120,9 +120,9 @@ export default function AdminDashboard() {
               >
                 <Users className="h-4 w-4" />
                 <span>Event Requests</span>
-                {requestCount > 0 && (
+                {eventReqs.length > 0 && (
                   <span className="ml-2 rounded-full bg-purple-500 px-2 py-1 text-xs font-medium text-white">
-                    {requestCount}
+                    {eventReqs.length}
                   </span>
                 )}
               </button>
