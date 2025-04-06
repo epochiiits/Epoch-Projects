@@ -65,25 +65,39 @@ const ChurnPred = () => {
     
     setLoading(true);
 
-    const formattedData = {
-      features: [
-        parseFloat(formData.age),
-        formData.gender === "Male" ? 1 : 0,
-        parseFloat(formData.earnings),
-        parseFloat(formData.claimAmount),
-        parseFloat(formData.planAmount),
-        parseInt(formData.creditScore),
-        formData.maritalStatus === "Married" ? 1 : 0,
-        parseInt(formData.daysPassed),
-        formData.autoInsurance === "Yes" ? 1 : 0,
-        formData.healthInsurance === "Yes" ? 1 : 0,
-        formData.lifeInsurance === "Yes" ? 1 : 0,
-        formData.planType === "Basic" ? 0 : 1,
-      ],
+    const features = [
+      parseFloat(formData.age),
+      formData.gender === "Male" ? 1 : 0,
+      parseFloat(formData.earnings),
+      parseFloat(formData.claimAmount),
+      parseFloat(formData.planAmount),
+      parseInt(formData.creditScore),
+      formData.maritalStatus === "Married" ? 1 : 0,
+      parseInt(formData.daysPassed),
+      formData.autoInsurance === "Yes" ? 1 : 0,
+      formData.healthInsurance === "Yes" ? 1 : 0,
+      formData.lifeInsurance === "Yes" ? 1 : 0,
+      formData.planType === "Basic" ? 0 : 1,
+    ];
+  
+    // 🧠 Construct the raw_data object to save
+    const raw_data = {
+      age: parseFloat(formData.age),
+      gender: formData.gender === "Male" ? "M" : "F",
+      earnings: parseFloat(formData.earnings),
+      claim_amount: parseFloat(formData.claimAmount),
+      insurance_plan_amount: parseFloat(formData.planAmount),
+      credit_score: formData.creditScore === "1" || formData.creditScore === "true" || formData.creditScore === true,
+      marital_status: formData.maritalStatus === "Married" ? "M" : "S",
+      days_passed: parseInt(formData.daysPassed),
+      type_of_insurance: "health", // default; update if needed
+      plan_type: formData.planType === "Basic" ? "basic" : "premium"
     };
+  
+    const payload = { features, raw_data };
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/predict/", formattedData);
+      const response = await axios.post("http://127.0.0.1:8000/api/predict/", payload);
       setResult(response.data);
       setLoading(false);
       
@@ -291,7 +305,7 @@ const ChurnPred = () => {
                   <p>Plan Message: <span className="font-bold text-purple-200">{result.plan_recommendation.plan_message}</span></p>
                 </div>
                 
-                <h3 className="text-base sm:text-lg font-semibold mt-3">Customer Analysis:</h3>
+                {/* <h3 className="text-base sm:text-lg font-semibold mt-3">Customer Analysis:</h3>
                 <div className="bg-gray-800/50 p-3 rounded-lg grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <p>Customer Value: <span className="font-bold text-yellow-300">{result.customer_analysis.customer_value}</span></p>
                   <p>Value Category: <span className={`font-bold ${
@@ -304,7 +318,7 @@ const ChurnPred = () => {
                     result.customer_analysis.cross_sell_opportunity === "High" ? "text-green-300" : 
                     result.customer_analysis.cross_sell_opportunity === "Medium" ? "text-yellow-300" : "text-gray-300"
                   }`}>{result.customer_analysis.cross_sell_opportunity}</span></p>
-                </div>
+                </div> */}
                 
                 {/* Customer Recommendations */}
                 <h3 className="text-base sm:text-lg font-semibold mt-3">Customer Recommendations:</h3>
