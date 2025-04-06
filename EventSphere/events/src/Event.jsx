@@ -30,11 +30,15 @@ export default function EventDetails() {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [name, setName] = useState("");
+  const [modalopen, setmodalopen] = useState(false)
   const [ratings, setRatings] = useState([]);
   const [error, setError] = useState("");
   const [event, setEvent] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const userid = Cookies.get("user");
+  const closemodal = () => {
+    setmodalopen(false)
+  }
   useEffect(() => {
     const fetchEventDetails = async () => {
       try {
@@ -464,12 +468,19 @@ export default function EventDetails() {
               ))}
             </div>
           </motion.section>
-
+          <button
+              onClick={() => setmodalopen(true)}
+              className="px-8 py-3 bg-purple-900 text-white rounded-lg hover:bg-purple-800 transition duration-300 flex items-center gap-2"
+            >
+              <User className="h-5 w-5" />
+              Register Now
+            </button>
           {/* Registration Component */}
-          {isUpcoming && (
+          {isUpcoming && modalopen&&  (
             <RegisterEvent
               userId={userid}
               event={event}
+              onClose={closemodal}
             />
           )}
         </div>
