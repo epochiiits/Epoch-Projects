@@ -4,3 +4,4 @@ django-cors-headers
 numpy
 pandas
 scikit-learn
+xgboost
