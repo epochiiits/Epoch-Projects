@@ -8,6 +8,7 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
   const [message, setMessage] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
 
   // Only show team options if teamSize is greater than 0
   const showTeamOptions = teamSize > 0;
@@ -23,6 +24,31 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
       email: "",
     })),
   });
+
+  // Check if user is already registered for this event
+  useEffect(() => {
+    const checkRegistrationStatus = async () => {
+      if (!userId || !eventId) return;
+
+      try {
+        const response = await axios.get(
+          `${Base_Url}/check-registration-status`,
+          {
+            params: {
+              userid: userId,
+              eventId: eventId,
+            },
+          }
+        );
+
+        setIsRegistered(response.data.isRegistered);
+      } catch (error) {
+        console.error("Error checking registration status:", error);
+      }
+    };
+
+    checkRegistrationStatus();
+  }, [userId, eventId]);
 
   // Effect to handle delayed form close on success
   useEffect(() => {
@@ -60,6 +86,43 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
       ...formData,
       members: updatedMembers,
     });
+  };
+
+  const handleUnregister = async () => {
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const response = await axios.post(
+        `${Base_Url}/unregister-event`,
+        {
+          userid: userId,
+          eventId: eventId,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        setMessage("Unregistered successfully!");
+        setIsRegistered(false);
+      } else {
+        setMessage("Failed to unregister. Please try again.");
+      }
+    } catch (error) {
+      setMessage("Failed to unregister. Please try again.");
+      console.error("Error unregistering:", error);
+    } finally {
+      setLoading(false);
+
+      // Show the message for a few seconds
+      setTimeout(() => {
+        setMessage("");
+      }, 3000);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -103,6 +166,7 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
       if (response.status === 200) {
         setMessage("Registered successfully!");
         setRegistrationSuccess(true); // Set success flag
+        setIsRegistered(true); // Update registration status
 
         // Reset form data
         setFormData({
@@ -119,7 +183,16 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
         setMessage("Failed to register. Please try again.");
       }
     } catch (error) {
-      setMessage("Failed to register. Please try again.");
+      if (
+        error.response &&
+        error.response.status === 400 &&
+        error.response.data.error === "User already registered for the event"
+      ) {
+        setMessage("You are already registered for this event!");
+        setIsRegistered(true);
+      } else {
+        setMessage("Failed to register. Please try again.");
+      }
       console.error("Error registering:", error);
     } finally {
       setLoading(false);
@@ -129,22 +202,38 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
   return (
     <div className="text-gray-200">
       {!showForm ? (
-        /* Register Button */
+        /* Register/Unregister Button */
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="w-full flex justify-center mt-8"
         >
-          <button
-            onClick={() => setShowForm(true)}
-            className="px-8 py-3 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition duration-300"
-          >
-            Register Now
-          </button>
+          {isRegistered ? (
+            <button
+              onClick={handleUnregister}
+              className="px-8 py-3 bg-red-600 text-white rounded-full hover:bg-red-700 transition duration-300"
+              disabled={loading}
+            >
+              {loading ? "Processing..." : "Unregister"}
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowForm(true)}
+              className="px-8 py-3 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition duration-300"
+            >
+              Register Now
+            </button>
+          )}
 
           {/* Show message if form is closed but message exists */}
           {message && !showForm && (
-            <div className="fixed top-4 right-4 bg-green-800 border border-green-600 text-green-100 px-4 py-3 rounded shadow-md">
+            <div
+              className={`fixed top-4 right-4 ${
+                isRegistered
+                  ? "bg-red-800 border border-red-600"
+                  : "bg-green-800 border border-green-600"
+              } text-green-100 px-4 py-3 rounded shadow-md`}
+            >
               {message}
             </div>
           )}
