@@ -4,10 +4,16 @@ import Cookie from 'js-cookie';
 
 export default function useAuth({userType}) {
   const navigate = useNavigate();
+  console.log(userType)
    const cookie = Cookie.get(userType)
   useEffect(() => {
     if (!cookie) {
       // If userType is not present, redirect to the login page based on userType
+      if (userType === 'user') {
+        alert('You must Login to continue');
+        navigate('/');
+        return
+      }
       navigate(`/${userType}/login`);
     } else {
 

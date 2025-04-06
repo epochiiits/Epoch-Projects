@@ -291,6 +291,7 @@ function EventCard({ event }) {
           <Phone className="w-4 h-4" />
           <span>{contactInfo}</span>
         </div>
+        <button>
         <a
           href={`/event/${_id}`}
           className={`px-4 py-2 rounded-md font-medium transition-all duration-300 ${
@@ -298,7 +299,6 @@ function EventCard({ event }) {
                "bg-purple-600 text-white hover:bg-purple-700 hover:scale-105"}`}
           disabled={status === "past"}
         >
-          <a href="/event/abcd">
             Register Now
           </a>
         </button>
