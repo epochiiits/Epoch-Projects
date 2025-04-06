@@ -1,15 +1,18 @@
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, parser_classes
 from django.shortcuts import render
 from.models import CustomerRecord
 import json
 from .utils import get_comprehensive_analysis
+from .model_utils import retrain_model_from_csv
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import CustomerRecord
 from .serializers import CustomerRecordSerializer
 import os
 import csv
+from rest_framework import status
 from django.conf import settings
 
 # @api_view(['POST'])
@@ -100,6 +103,23 @@ def save_customer_data(data, churn_prob, recommendation):
     days_passed=data['days_passed'],
     type_of_insurance=data['type_of_insurance'],
     plan_type=data['plan_type'],  
-    churn_probability=churn_prob,
+    churn_probability=1 if churn_prob > 0.5 else 0,
     recommendation=recommendation
 )
+    
+@api_view(['POST'])
+def retrain_model_api(request):
+    try:
+        # Paths relative to the project root (where manage.py is)
+        dataset_path = os.path.join('logs','training_data.csv')
+        model_output_path = os.path.join('models','churn_model.pkl')
+
+        if not os.path.exists(dataset_path):
+            return Response({'error': 'training_data.csv not found in project root.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Retrain and save model
+        message = retrain_model_from_csv(dataset_path, model_output_path)
+        return Response({'message': message}, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

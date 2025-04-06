@@ -4,6 +4,7 @@ import ChurnPred from "./pages/ChurnPred";
 import Home from "./pages/Home";
 import { HashLoader } from "react-spinners";
 import { motion } from "framer-motion";
+import RetrainModel from "./pages/RetrainModel";
 
 const Loader = () => {
   return (
@@ -45,6 +46,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/predict" element={<ChurnPred />} />
+          <Route path="/retrain" element={<RetrainModel />} />
         </Routes>
       )}
     </Router>
