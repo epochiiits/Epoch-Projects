@@ -45,9 +45,14 @@ router.post("/register-event", async (req, res) => {
   try {
     const userid = req.body?.userid;
     const eventId = req.body?.eventId;
+    const leadInfo = req.body?.leadInfo;
 
     if (!userid || !eventId) {
       return res.status(400).json({ error: "Missing userid or event ID" });
+    }
+
+    if (!leadInfo || !leadInfo.name || !leadInfo.email || !leadInfo.phone) {
+      return res.status(400).json({ error: "Missing lead info" });
     }
 
     // Update the user's registered events

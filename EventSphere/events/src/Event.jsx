@@ -451,7 +451,11 @@ export default function EventDetails() {
             </div>
           </motion.section>
 
-          <RegisterEvent eventId={1234} userId={1234} />
+          <RegisterEvent
+            eventId={"67da6cffd977c3df2fd10d78"}
+            userId={"67d9b0ad176c2ce9932314c7"}
+            teamSize={eventDetails.isTeamEvent ? eventDetails.teamSize : 0}
+          />
         </div>
       </div>
     </div>
