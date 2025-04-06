@@ -38,6 +38,9 @@ const googleLogin = async (req, res) => {
       return res.status(200).send({
         message: "Email Already Exists",
         userId: userExists._id,
+        picture: userExists.profilePic,
+        name: userExists.name,
+        email: userExists.email,
       });
     }
     const newUser = new usermodel({
@@ -50,6 +53,9 @@ const googleLogin = async (req, res) => {
     res.status(200).send({
       message: "Account Created Successfully",
       userId: newUser._id,
+      picture:picture,
+      name:name,
+      email:email,
     });
   } catch (error) {
     console.error("Error during Google login:", error);

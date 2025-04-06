@@ -7,7 +7,7 @@ const Event = require("../models/event");
 router.get("/profile/:id", async function (req, res) {
   try {
     const { id } = req.params;
-    const profile = await user.findById(id);
+    const profile = await User.findById(id);
     if (!profile) {
       return res.status(404).send({ error: "Profile not found" });
     }
@@ -21,7 +21,7 @@ router.get("/profile/:id", async function (req, res) {
 router.get("/profile/google/:id", async function (req, res) {
   try {
     const { id } = req.params;
-    const profile = await user.findOne({ googleId: id });
+    const profile = await User.findOne({ googleId: id });
     if (!profile) {
       return res.status(404).send({ error: "Profile not found" });
     }
