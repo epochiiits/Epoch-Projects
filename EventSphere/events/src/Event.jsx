@@ -469,10 +469,7 @@ export default function EventDetails() {
           {isUpcoming && (
             <RegisterEvent
               userId={userid}
-              eventId={id}
-              teamSize={event.isTeamEvent ? event.teamSize : 0}
-              isPaid={event.isPaid}
-              amount={event.amount}
+              event={event}
             />
           )}
         </div>

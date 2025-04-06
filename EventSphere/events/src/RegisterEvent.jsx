@@ -2,15 +2,25 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { Base_Url } from "./apiserveices/api";
+import {
+  User,
+  Users,
+  Mail,
+  Phone,
+  X,
+  Check,
+  AlertCircle,
+  Loader2,
+} from "lucide-react";
 
-const RegisterEvent = ({ eventId, userId, teamSize }) => {
+const RegisterEvent = ({ event, userId }) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
 
-  // Only show team options if teamSize is greater than 0
+  const teamSize = event?.isTeamEvent ? event?.teamSize : 0;
   const showTeamOptions = teamSize > 0;
 
   const [isTeamEvent, setIsTeamEvent] = useState(false);
@@ -28,7 +38,7 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
   // Check if user is already registered for this event
   useEffect(() => {
     const checkRegistrationStatus = async () => {
-      if (!userId || !eventId) return;
+      if (!userId || !event?._id) return;
 
       try {
         const response = await axios.get(
@@ -36,7 +46,7 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
           {
             params: {
               userid: userId,
-              eventId: eventId,
+              eventId: event._id,
             },
           }
         );
@@ -48,7 +58,7 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
     };
 
     checkRegistrationStatus();
-  }, [userId, eventId]);
+  }, [userId, event?._id]);
 
   // Effect to handle delayed form close on success
   useEffect(() => {
@@ -57,7 +67,7 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
       timer = setTimeout(() => {
         setShowForm(false);
         setRegistrationSuccess(false);
-      }, 3000); // Close form after 3 seconds on success
+      }, 3000);
     }
 
     return () => {
@@ -97,7 +107,7 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
         `${Base_Url}/unregister-event`,
         {
           userid: userId,
-          eventId: eventId,
+          eventId: event._id,
         },
         {
           headers: {
@@ -118,7 +128,6 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
     } finally {
       setLoading(false);
 
-      // Show the message for a few seconds
       setTimeout(() => {
         setMessage("");
       }, 3000);
@@ -129,12 +138,11 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
-    setRegistrationSuccess(false); // Reset success state
+    setRegistrationSuccess(false);
 
     try {
-      // Prepare submission data
       const submissionData = {
-        eventId,
+        eventId: event._id,
         userid: userId,
         leadInfo: {
           name: formData.name,
@@ -143,11 +151,9 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
         },
       };
 
-      // Add team information if it's a team event and team options are available
       if (isTeamEvent && showTeamOptions) {
         submissionData.isTeam = true;
         submissionData.teamName = formData.teamName;
-        // Only include members with name and email
         submissionData.members = formData.members.filter(
           (member) => member.name && member.email
         );
@@ -165,10 +171,9 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
 
       if (response.status === 200) {
         setMessage("Registered successfully!");
-        setRegistrationSuccess(true); // Set success flag
-        setIsRegistered(true); // Update registration status
+        setRegistrationSuccess(true);
+        setIsRegistered(true);
 
-        // Reset form data
         setFormData({
           name: "",
           email: "",
@@ -202,7 +207,6 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
   return (
     <div className="text-gray-200">
       {!showForm ? (
-        /* Register/Unregister Button */
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -211,73 +215,107 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
           {isRegistered ? (
             <button
               onClick={handleUnregister}
-              className="px-8 py-3 bg-red-600 text-white rounded-full hover:bg-red-700 transition duration-300"
+              className="px-8 py-3 bg-red-900 text-white rounded-lg hover:bg-red-800 transition duration-300 flex items-center gap-2"
               disabled={loading}
             >
-              {loading ? "Processing..." : "Unregister"}
+              {loading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <X className="h-5 w-5" />
+              )}
+              Unregister
             </button>
           ) : (
             <button
               onClick={() => setShowForm(true)}
-              className="px-8 py-3 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition duration-300"
+              className="px-8 py-3 bg-purple-900 text-white rounded-lg hover:bg-purple-800 transition duration-300 flex items-center gap-2"
             >
+              <User className="h-5 w-5" />
               Register Now
             </button>
           )}
 
-          {/* Show message if form is closed but message exists */}
           {message && !showForm && (
-            <div
-              className={`fixed top-4 right-4 ${
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg ${
                 isRegistered
-                  ? "bg-red-800 border border-red-600"
-                  : "bg-green-800 border border-green-600"
-              } text-green-100 px-4 py-3 rounded shadow-md`}
+                  ? "bg-red-900 border border-red-800"
+                  : "bg-green-900 border border-green-800"
+              } flex items-center gap-2`}
             >
-              {message}
-            </div>
+              {isRegistered ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Check className="h-5 w-5" />
+              )}
+              <span>{message}</span>
+            </motion.div>
           )}
         </motion.div>
       ) : (
-        /* Registration Form */
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-gray-800 p-6 rounded-lg shadow-lg max-w-2xl mx-auto mt-8 border border-gray-700"
+          className="bg-black p-6 rounded-lg shadow-lg max-w-2xl mx-auto mt-8 border border-gray-900"
         >
-          <h3 className="text-xl font-bold text-center mb-6 text-purple-300">
-            {showTeamOptions ? "Event Registration" : "Individual Registration"}
-          </h3>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-bold text-purple-400">
+              {showTeamOptions ? "Team Registration" : "Individual Registration"}
+            </h3>
+            <button
+              onClick={() => setShowForm(false)}
+              className="text-gray-400 hover:text-white"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
 
-          {/* Enhanced message display */}
           {message && (
-            <div
-              className={`mb-4 p-3 text-center rounded font-medium ${
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`mb-4 p-3 rounded-lg flex items-center gap-2 ${
                 registrationSuccess
-                  ? "bg-green-800 text-green-100"
-                  : "bg-red-900 text-red-100"
+                  ? "bg-green-900 text-green-100 border border-green-800"
+                  : "bg-red-900 text-red-100 border border-red-800"
               }`}
             >
-              {message}
-              {registrationSuccess && (
-                <p className="text-sm mt-1">
-                  This form will close automatically in a few seconds.
-                </p>
+              {registrationSuccess ? (
+                <Check className="h-5 w-5" />
+              ) : (
+                <AlertCircle className="h-5 w-5" />
               )}
-            </div>
+              <div>
+                <p>{message}</p>
+                {registrationSuccess && (
+                  <p className="text-xs mt-1 opacity-80">
+                    Form will close automatically...
+                  </p>
+                )}
+              </div>
+            </motion.div>
           )}
 
           <form onSubmit={handleSubmit}>
-            {/* Participant Information */}
             <div className="mb-6">
-              <h4 className="text-lg font-semibold mb-3 text-purple-200">
-                {showTeamOptions
-                  ? "Team Lead Information"
-                  : "Participant Information"}
+              <h4 className="text-lg font-semibold mb-3 text-purple-300 flex items-center gap-2">
+                {showTeamOptions ? (
+                  <>
+                    <Users className="h-5 w-5" />
+                    Team Lead Information
+                  </>
+                ) : (
+                  <>
+                    <User className="h-5 w-5" />
+                    Participant Information
+                  </>
+                )}
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-300">
+                  <label className="block text-sm font-medium mb-1 text-gray-400">
                     Name
                   </label>
                   <input
@@ -285,13 +323,13 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                    className="w-full px-3 py-2 bg-gray-900 border border-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-900 text-white"
                     required
                     disabled={registrationSuccess}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-300">
+                  <label className="block text-sm font-medium mb-1 text-gray-400">
                     Email
                   </label>
                   <input
@@ -299,13 +337,13 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                    className="w-full px-3 py-2 bg-gray-900 border border-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-900 text-white"
                     required
                     disabled={registrationSuccess}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-300">
+                  <label className="block text-sm font-medium mb-1 text-gray-400">
                     Phone Number
                   </label>
                   <input
@@ -313,7 +351,7 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                    className="w-full px-3 py-2 bg-gray-900 border border-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-900 text-white"
                     required
                     disabled={registrationSuccess}
                   />
@@ -321,7 +359,6 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
               </div>
             </div>
 
-            {/* Team Event Toggle - Only show if teamSize > 0 */}
             {showTeamOptions && (
               <div className="mb-6">
                 <div className="flex items-center">
@@ -330,27 +367,27 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
                     id="isTeamEvent"
                     checked={isTeamEvent}
                     onChange={() => setIsTeamEvent(!isTeamEvent)}
-                    className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-600 rounded bg-gray-700"
+                    className="h-4 w-4 text-purple-900 focus:ring-purple-800 border-gray-700 rounded bg-gray-900"
                     disabled={registrationSuccess}
                   />
                   <label
                     htmlFor="isTeamEvent"
-                    className="ml-2 block text-sm font-medium text-gray-300"
+                    className="ml-2 block text-sm font-medium text-gray-400"
                   >
-                    This is a team registration
+                    Register as a team
                   </label>
                 </div>
               </div>
             )}
 
-            {/* Team Details (conditional) - Only show if teamSize > 0 and isTeamEvent is true */}
             {showTeamOptions && isTeamEvent && (
               <div className="mb-6">
-                <h4 className="text-lg font-semibold mb-3 text-purple-200">
+                <h4 className="text-lg font-semibold mb-3 text-purple-300 flex items-center gap-2">
+                  <Users className="h-5 w-5" />
                   Team Details
                 </h4>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium mb-1 text-gray-300">
+                  <label className="block text-sm font-medium mb-1 text-gray-400">
                     Team Name
                   </label>
                   <input
@@ -358,81 +395,88 @@ const RegisterEvent = ({ eventId, userId, teamSize }) => {
                     name="teamName"
                     value={formData.teamName}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                    className="w-full px-3 py-2 bg-gray-900 border border-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-900 text-white"
                     required={isTeamEvent}
                     disabled={registrationSuccess}
                   />
                 </div>
 
-                <h5 className="text-md font-medium mb-2 text-purple-200">
-                  Team Members
-                </h5>
-                <p className="text-sm text-gray-400 mb-3">
-                  Please provide details for up to {teamSize} team members
-                </p>
+                <div className="space-y-3">
+                  <h5 className="text-md font-medium text-purple-300">
+                    Team Members (Max: {teamSize})
+                  </h5>
+                  <p className="text-sm text-gray-500">
+                    Fill details for your team members
+                  </p>
 
-                {formData.members.map((member, index) => (
-                  <div
-                    key={index}
-                    className="p-3 mb-3 bg-gray-700 rounded-md border border-gray-600"
-                  >
-                    <h6 className="text-sm font-medium mb-2 text-gray-300">
-                      Member {index + 1}
-                    </h6>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-300">
-                          Name
-                        </label>
-                        <input
-                          type="text"
-                          value={member.name}
-                          onChange={(e) =>
-                            handleMemberChange(index, "name", e.target.value)
-                          }
-                          className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
-                          required={isTeamEvent && index === 0}
-                          disabled={registrationSuccess}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-300">
-                          Email
-                        </label>
-                        <input
-                          type="email"
-                          value={member.email}
-                          onChange={(e) =>
-                            handleMemberChange(index, "email", e.target.value)
-                          }
-                          className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
-                          required={isTeamEvent && index === 0}
-                          disabled={registrationSuccess}
-                        />
+                  {formData.members.map((member, index) => (
+                    <div
+                      key={index}
+                      className="p-4 bg-gray-900 rounded-md border border-gray-800"
+                    >
+                      <h6 className="text-sm font-medium mb-2 text-gray-300">
+                        Member {index + 1}
+                      </h6>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-1 text-gray-400">
+                            Name
+                          </label>
+                          <input
+                            type="text"
+                            value={member.name}
+                            onChange={(e) =>
+                              handleMemberChange(index, "name", e.target.value)
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-900 text-white"
+                            required={isTeamEvent && index === 0}
+                            disabled={registrationSuccess}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1 text-gray-400">
+                            Email
+                          </label>
+                          <input
+                            type="email"
+                            value={member.email}
+                            onChange={(e) =>
+                              handleMemberChange(index, "email", e.target.value)
+                            }
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-900 text-white"
+                            required={isTeamEvent && index === 0}
+                            disabled={registrationSuccess}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
 
-            {/* Form Actions */}
-            <div className="flex justify-end space-x-3 mt-6">
+            <div className="flex justify-end space-x-3 mt-8 pt-4 border-t border-gray-900">
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="px-4 py-2 border border-gray-600 text-gray-300 rounded-md hover:bg-gray-700 transition duration-300"
+                className="px-4 py-2 border border-gray-800 text-gray-300 rounded-md hover:bg-gray-900 transition duration-300 flex items-center gap-2"
                 disabled={loading}
               >
+                <X className="h-4 w-4" />
                 {registrationSuccess ? "Close" : "Cancel"}
               </button>
               {!registrationSuccess && (
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition duration-300"
+                  className="px-4 py-2 bg-purple-900 text-white rounded-md hover:bg-purple-800 transition duration-300 flex items-center gap-2"
                   disabled={loading}
                 >
-                  {loading ? "Submitting..." : "Submit Registration"}
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Check className="h-4 w-4" />
+                  )}
+                  Submit Registration
                 </button>
               )}
             </div>
