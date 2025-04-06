@@ -31,7 +31,7 @@ function App() {
             </div>
           }/>
         <Route path="club/:name" element={<ClubPage />} />
-        <Route path="/event/:name" element={<EventDetails/>} />
+        <Route path="/event/:id" element={<EventDetails/>} />
         <Route path="/organize" element={<AddEvent/>} />
         <Route path="/admin" element={<AdminDashboard/>} />
         <Route path="/participants" element={<Participants/>} />
