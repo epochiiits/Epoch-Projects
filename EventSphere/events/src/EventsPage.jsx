@@ -294,13 +294,14 @@ function EventCard({ event }) {
         <a
           href={`/event/${_id}`}
           className={`px-4 py-2 rounded-md font-medium transition-all duration-300 ${
-            isUpcoming
-              ? "bg-purple-600 text-white hover:bg-purple-700 hover:scale-105"
-              : "bg-gray-600 text-gray-300 cursor-not-allowed opacity-50"
-          }`}
+           
+               "bg-purple-600 text-white hover:bg-purple-700 hover:scale-105"}`}
+          disabled={status === "past"}
         >
-          {isUpcoming ? "View Details" : "Event Ended"}
-        </a>
+          <a href="/event/abcd">
+            Register Now
+          </a>
+        </button>
       </div>
     </div>
   );
