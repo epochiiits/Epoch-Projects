@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios'; // Make sure to install axios if you haven't already
+import axios from 'axios';
 import { 
   Calendar,
   Clock,
@@ -14,8 +14,9 @@ import {
   Plus,
   LogOut
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Base_Url } from './apiserveices/api';
+import Cookies from "js-cookie";
 
 // Mock data for events
 const events = {
@@ -99,15 +100,18 @@ const clubStats = [
 ];
 
 function ClubDashboard() {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  
+  const [club, setClub] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('upcoming');
   const [showNav, setShowNav] = useState(false);
   
-  // New states for the event modal and form
   const [showEventModal, setShowEventModal] = useState(false);
   const [eventForm, setEventForm] = useState({
     title: '',
-    event_type: 'Technical', // Default value
+    event_type: 'Technical',
     description: '',
     date: '',
     time: '',
@@ -123,6 +127,41 @@ function ClubDashboard() {
   const [imagePreview, setImagePreview] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    const clubId = Cookies.get("club_id");
+    if (!clubId) {
+      navigate("/club/login");
+    } else if (clubId !== id) {
+      navigate(`/club/dashboard/${clubId}`);
+    }
+  }, [id, navigate]);
+
+  useEffect(() => {
+    const fetchClubData = async () => {
+      const clubId = Cookies.get('club_id');
+      if (clubId) {
+        try {
+          const response = await axios.get(`${Base_Url}/clubs/${clubId}`);
+          setClub(response.data);
+          console.log("Club data:", response.data);
+        } catch (error) {
+          console.error('Error fetching club data:', error);
+        }
+      }
+    };
+
+    fetchClubData();
+  }, []);
+
+  const handleLogout = () => {
+    Cookies.remove('club_id');
+    Cookies.remove('club_name');
+    Cookies.remove('club_email');
+    navigate('/club/login');
+  };
+
+  const clubName = Cookies.get('club_name') || 'Club Dashboard';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -146,7 +185,6 @@ function ClubDashboard() {
       return acc;
     }, {});
 
-    // Sort events within each month by date
     Object.keys(grouped).forEach(month => {
       grouped[month].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     });
@@ -166,7 +204,6 @@ function ClubDashboard() {
     const file = e.target.files[0];
     if (!file) return;
     
-    // Preview the image
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result);
@@ -198,7 +235,6 @@ function ClubDashboard() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Basic validation
     if (!eventForm.title || !eventForm.description || !eventForm.date || 
         !eventForm.time || !eventForm.venue || !eventForm.contactInfo || !eventForm.image) {
       setErrorMessage('Please fill all required fields and upload an image');
@@ -208,7 +244,6 @@ function ClubDashboard() {
     try {
       setIsSubmitting(true);
       
-      // Format the data according to the backend API requirements
       const eventData = {
         title: eventForm.title,
         description: eventForm.description, 
@@ -227,25 +262,22 @@ function ClubDashboard() {
       
       console.log('Sending event data:', eventData);
       
-      // Explicitly set content type and handle large payloads
       const response = await axios.post(Base_Url+'/events', eventData, {
         headers: {
           'Content-Type': 'application/json',
         },
-        maxContentLength: 50 * 1024 * 1024, // 50MB
-        maxBodyLength: 50 * 1024 * 1024, // 50MB
+        maxContentLength: 50 * 1024 * 1024,
+        maxBodyLength: 50 * 1024 * 1024,
       });
       
       console.log('Event created:', response.data);
       
-      // Close the modal and reset the form
       setShowEventModal(false);
       resetForm();
       
     } catch (error) {
       console.error('Error creating event:', error);
       
-      // More detailed error message
       if (error.response) {
         console.error('Server response error:', error.response.data);
         setErrorMessage(`Failed to create event: ${error.response.data.error || 'Server error'}`);
@@ -352,7 +384,7 @@ function ClubDashboard() {
       <div className={`fixed inset-y-0 left-0 w-64 bg-[#1a1a1a] transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-200 ease-in-out z-30`}>
         <div className="p-6">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-xl font-bold">AI ML Club</h2>
+            <h2 className="text-xl font-bold">{clubName}</h2>
             <button onClick={() => setIsSidebarOpen(false)} className="text-gray-400 hover:text-white">
               <X className="w-6 h-6" />
             </button>
@@ -374,7 +406,10 @@ function ClubDashboard() {
               Back
             </Link>
 
-            <button className="w-full flex items-center gap-3 px-4 py-2 text-left rounded-lg text-red-400 hover:bg-red-950 transition-colors">
+            <button 
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-4 py-2 text-left rounded-lg text-red-400 hover:bg-red-950 transition-colors"
+            >
               <LogOut className="w-5 h-5" />
               Log Out
             </button>
