@@ -131,3 +131,12 @@ def retrain_model_api(request):
 
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+from django.shortcuts import render
+
+def index(request):
+    """
+    Render the index page.
+    """
+    return render(request, 'index.html')

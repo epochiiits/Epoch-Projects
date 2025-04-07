@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-b2fx(l#f72ei@!w0=c_*l@2x=giwrkbyy!d#1d-*nr#@fx&*1+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -81,7 +81,7 @@ CORS_ALLOW_HEADERS = [
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": ['/backend/templates'],  # Directory for HTML templates
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -143,6 +143,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"  # Directory to collect static files
+STATICFILES_DIRS = [
+    BASE_DIR / "static",  # Directory for static files during development
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

@@ -10,7 +10,7 @@ const RetrainModel = () => {
     setMessage('');
 
     try {
-      const response = await axios.post('http://localhost:8000/api/retrain-model/');
+      const response = await axios.post('http://ec2-13-60-196-93.eu-north-1.compute.amazonaws.com/api/retrain-model/');
       setMessage(response.data.message || 'Model retrained successfully!');
     } catch (error) {
       setMessage(error.response?.data?.error || 'Something went wrong.');

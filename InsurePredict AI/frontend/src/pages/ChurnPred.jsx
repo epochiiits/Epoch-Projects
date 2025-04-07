@@ -3,6 +3,7 @@ import axios from "axios";
 import { motion } from "framer-motion";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+// import REACT_APP_API_URL from "../.env";
 
 const ChurnPred = () => {
   const [formData, setFormData] = useState({
@@ -97,7 +98,7 @@ const ChurnPred = () => {
     const payload = { features, raw_data };
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/predict/", payload);
+      const response = await axios.post("http://ec2-13-60-196-93.eu-north-1.compute.amazonaws.com/api/predict", payload);
       setResult(response.data);
       setLoading(false);
       
