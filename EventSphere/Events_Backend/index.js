@@ -20,7 +20,7 @@ const multer = require("multer");
 const upload = multer({ storage });
 // Connect to MongoDB
 mongoose
-  .connect(process.env.URL)
+  .connect("mongodb+srv://koushik:koushik@cluster0.h2lzgvs.mongodb.net/events")
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("Failed to connect to MongoDB:", err));
 
