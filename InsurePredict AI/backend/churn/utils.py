@@ -39,9 +39,7 @@ feature_names = ['Age', 'Gender', 'Earnings ($)', 'Claim Amount ($)',
                 'Insurance Plan Amount ($)', 'Credit Score', 'Marital Status', 'days_passed',
                 'Automobile Insurance', 'Health Insurance', 'Life Insurance', 'Plan Type']
 
-
-
-customer_profiles = pd.read_csv("churn/preprocessed.csv")
+customer_profiles = pd.read_csv("./logs/training_data.csv")
 X = customer_profiles.iloc[:,:12]
 y = customer_profiles.iloc[:,12]
 
