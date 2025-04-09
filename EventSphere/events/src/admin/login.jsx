@@ -1,31 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Lock, Mail } from 'lucide-react';
-import { Apis } from '../apiserveices/api'
-import useAuth from '../hooks/useAuth'
-import Cookie from 'js-cookie'
+import { Apis } from '../apiserveices/api';
+import { useNavigate } from 'react-router-dom';
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-useAuth({ 'userType': 'admin'})
-const handleSubmit = async (e) => {
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError(''); // Reset error message before making the request
+    setError('');
 
     try {
       const response = await Apis.adminlogin({ email, password });
-
-      if (response.ok) {
-        // Assume the response contains { success: true, data: { id, userType }}
-        const data = await response.json();
-        
-        // Set the admin cookie with data.id and userType
-        Cookie.set('admin', data.id);
-        // You can call `useAuth` to manage the redirection based on the `userType`
+      
+      if (response.token) {
+        // Redirect to admin dashboard on successful login
+        navigate('/admin/dashboard');
       } else {
-        // Handle login failure
         throw new Error('Login failed');
       }
     } catch (err) {
@@ -35,7 +31,6 @@ const handleSubmit = async (e) => {
       setLoading(false);
     }
   };
-
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">

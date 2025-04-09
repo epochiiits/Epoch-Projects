@@ -33,14 +33,12 @@ router.get("/events", async (req, res) => {
 
 router.post("/events", async (req, res) => {
   try {
-    console.log("Received event data:", JSON.stringify(req.body, null, 2));
-    
     // Extract all fields from the request body
     const {
       title, description, image, date, time, venue,
-      isTeamEvent, teamSize, prizeMoney, isPaid, amount, event_type, contactInfo,
+      isTeamEvent, teamSize, prizeMoney, isPaid, amount, event_type, contactInfo, club_id
     } = req.body;
-
+   console.log("club id " , club_id)
     // Log what fields we received to debug
     console.log('Received fields:', {
       title: !!title,
@@ -76,6 +74,7 @@ router.post("/events", async (req, res) => {
       // Create event document with proper field mapping
       const eventDocument = {
         title: title,
+        clubs: club_id ? [club_id] : [], // Ensure clubs is an array
         description: description,
         imageUrl: uploadResponse.secure_url, // Note: schema field is imageUrl, not image
         date: new Date(date), // Convert string date to Date object
@@ -96,6 +95,12 @@ router.post("/events", async (req, res) => {
       const newEvent = new Events(eventDocument);
       const savedEvent = await newEvent.save();
       
+      const Club =  await Clubs.findById(club_id);
+      console.log(Club)
+      if (Club) {
+        Club.events.push(savedEvent._id);
+        await Club.save();
+      } 
       console.log("Event saved successfully with ID:", savedEvent._id);
       
       res.status(201).json({ 

@@ -15,7 +15,6 @@ import {
   DollarSign,
   Shield,
 } from "lucide-react";
-import useAuth from "./hooks/useAuth";
 const RegisterEvent = ({ event, userId, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -45,7 +44,6 @@ const RegisterEvent = ({ event, userId, onClose }) => {
     cvc: "",
     name: "",
   });
-  useAuth({userType : 'user'})
   // Check registration status
   useEffect(() => {
     const checkRegistrationStatus = async () => {

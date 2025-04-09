@@ -23,7 +23,6 @@ export const Apis = {
 
   async adminlogin(credentials) {
     try {
-      // Making an API call using Axios
       const response = await axios.post(
         `${API_BASE_URL}/admin/login`,
         credentials
@@ -33,8 +32,13 @@ export const Apis = {
         throw new Error("Login failed");
       }
 
-      const data = response.data;
-      return data;
+      // Store the token in localStorage
+      localStorage.setItem('adminToken', response.data.token);
+      
+      // Set the default Authorization header for future requests
+      axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+
+      return response.data;
     } catch (error) {
       console.error("Login error:", error);
       throw error;
@@ -45,12 +49,11 @@ export const Apis = {
     try {
       const response = await axios.get(`${API_BASE_URL}/events`);
       console.log(response);
-      // Convert to array
       const eventsData = response.data;
       return eventsData;
     } catch (error) {
       console.error("Error fetching events:", error);
-      return []; // Return an empty array in case of error
+      return []; 
     }
   },
   
@@ -72,5 +75,24 @@ export const Apis = {
       console.error('Error accepting event:', error)
       throw error
     }
+  },
+
+  // Setup axios interceptor for adding token to requests
+  setupAxiosInterceptors() {
+    axios.interceptors.request.use(
+      (config) => {
+        const token = localStorage.getItem('adminToken');
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
   }
 };
+
+// Set up interceptors when the file is imported
+Apis.setupAxiosInterceptors();

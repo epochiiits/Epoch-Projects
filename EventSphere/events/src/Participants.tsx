@@ -95,10 +95,10 @@ function Participants() {
       <main className="p-6">
         {/* Event List */}
         {events.map((event) => {
+             
           const averageRating =
             event.ratings.reduce((acc, curr) => acc + curr.rating, 0) /
-            event.ratings.length;
-
+            event.ratings.length;   
           return (
             <div
               key={event.id}

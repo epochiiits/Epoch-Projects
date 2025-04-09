@@ -17,93 +17,34 @@ import {
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Base_Url } from './apiserveices/api';
 import Cookies from "js-cookie";
+import useAuth from './hooks/useAuth';
 
-// Mock data for events
-const events = {
-  upcoming: [
-    {
-      id: 1,
-      title: "Hackathon 2024",
-      description: "Join us for a 24-hour coding marathon where teams compete to build innovative solutions. Great prizes, amazing networking opportunities...",
-      event_type: "Technical",
-      date: "2024-03-15",
-      time: "09:00 AM",
-      venue: "Main Auditorium, Tech Campus",
-      teamSize: 4,
-      prizeMoney: 5000,
-      isPaid: true,
-      amount: 50,
-      contactInfo: "+1 (555) 123-4567",
-      participants: ["P1", "P2", "P3"],
-      imageUrl: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1000",
-    },
-    {
-      id: 2,
-      title: "Inter-College Sports Festival",
-      description: "A grand sports event featuring multiple disciplines. Compete with the best athletes from colleges across the region!",
-      event_type: "Sports",
-      date: "2024-04-20",
-      time: "08:00 AM",
-      venue: "University Sports Complex",
-      teamSize: 10,
-      prizeMoney: 10000,
-      isPaid: true,
-      amount: 100,
-      contactInfo: "+1 (555) 987-6543",
-      participants: ["P1", "P2", "P3", "P4", "P5"],
-      imageUrl: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=1000",
-    }
-  ],
-  past: [
-    {
-      id: 3,
-      title: "Code Sprint 2023",
-      description: "Speed coding challenge with exciting prizes",
-      event_type: "Competition",
-      date: "2023-12-15",
-      time: "10:00 AM",
-      venue: "Tech Hub",
-      teamSize: 2,
-      prizeMoney: 3000,
-      isPaid: true,
-      amount: 50,
-      contactInfo: "+1 234-567-8902",
-      participants: ["P1", "P2"],
-      imageUrl: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1000",
-    }
-  ],
-  requests: [
-    {
-      id: 4,
-      title: "Web Dev Bootcamp",
-      description: "Intensive web development training program",
-      event_type: "Workshop",
-      date: "2024-04-05",
-      time: "11:00 AM",
-      venue: "Virtual",
-      teamSize: 1,
-      prizeMoney: 0,
-      isPaid: true,
-      amount: 199,
-      contactInfo: "+1 234-567-8903",
-      participants: [],
-      imageUrl: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=1000",
-    }
-  ]
+// Club stats component
+const ClubStats = ({ events }) => {
+  const stats = [
+    { label: "Total Events", value: events?.length || 0 },
+    { label: "Upcoming Events", value: events?.filter(e => new Date(e.date) > new Date()).length || 0 },
+    { label: "Past Events", value: events?.filter(e => new Date(e.date) <= new Date()).length || 0 }
+  ];
+
+  return (
+    <div className="flex gap-8 mt-8">
+      {stats.map((stat, index) => (
+        <div key={index} className="text-center">
+          <div className="text-3xl font-bold text-purple-400">{stat.value}</div>
+          <div className="text-sm text-gray-400">{stat.label}</div>
+        </div>
+      ))}
+    </div>
+  );
 };
-
-// Club stats
-const clubStats = [
-  { label: "Total Events", value: "42" },
-  { label: "Active Members", value: "150+" },
-  { label: "Years Active", value: "5" }
-];
 
 function ClubDashboard() {
   const navigate = useNavigate();
   const { id } = useParams();
   
-  const [club, setClub] = useState(null);
+  const [clubData, setClubData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('upcoming');
   const [showNav, setShowNav] = useState(false);
@@ -129,24 +70,18 @@ function ClubDashboard() {
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    const clubId = Cookies.get("club_id");
-    if (!clubId) {
-      navigate("/club/login");
-    } else if (clubId !== id) {
-      navigate(`/club/dashboard/${clubId}`);
-    }
-  }, [id, navigate]);
-
-  useEffect(() => {
     const fetchClubData = async () => {
-      const clubId = Cookies.get('club_id');
+      const clubId = Cookies.get('club');
       if (clubId) {
         try {
+          setIsLoading(true);
           const response = await axios.get(`${Base_Url}/clubs/${clubId}`);
-          setClub(response.data);
+          setClubData(response.data);
           console.log("Club data:", response.data);
         } catch (error) {
           console.error('Error fetching club data:', error);
+        } finally {
+          setIsLoading(false);
         }
       }
     };
@@ -155,23 +90,33 @@ function ClubDashboard() {
   }, []);
 
   const handleLogout = () => {
-    Cookies.remove('club_id');
+    Cookies.remove('club');
     Cookies.remove('club_name');
     Cookies.remove('club_email');
     navigate('/club/login');
   };
 
-  const clubName = Cookies.get('club_name') || 'Club Dashboard';
-
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
-      setShowNav(scrollPosition > 300);
+      setShowNav(scrollPosition > 100);
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const groupEventsByStatus = () => {
+    if (!clubData?.events) return { upcoming: [], past: [] };
+    
+    const now = new Date();
+    return {
+      upcoming: clubData.events.filter(event => new Date(event.date) > now),
+      past: clubData.events.filter(event => new Date(event.date) <= now)
+    };
+  };
+
+  const groupedEvents = groupEventsByStatus();
 
   const groupEventsByMonth = (events) => {
     const grouped = events.reduce((acc, event) => {
@@ -245,6 +190,7 @@ function ClubDashboard() {
       setIsSubmitting(true);
       
       const eventData = {
+        club_id: clubData.club._id,
         title: eventForm.title,
         description: eventForm.description, 
         image: eventForm.image,
@@ -272,6 +218,10 @@ function ClubDashboard() {
       
       console.log('Event created:', response.data);
       
+      // Refresh club data to include the new event
+      const updatedResponse = await axios.get(`${Base_Url}/clubs/${clubData.club._id}`);
+      setClubData(updatedResponse.data);
+      
       setShowEventModal(false);
       resetForm();
       
@@ -293,6 +243,7 @@ function ClubDashboard() {
   };
 
   const renderEventCard = (event) => (
+   <a href={`/club/event/${event._id}`} className="block"> 
     <div className="bg-[#1a1a1a] rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-[1.02] max-w-2xl">
       <div className="relative h-48">
         <img 
@@ -367,16 +318,44 @@ function ClubDashboard() {
                 </div>
               )}
             </div>
-            <a href="/club/event/:abc">
             <span className="text-sm text-gray-400">
               {event.participants.length} Registered
             </span>
-            </a>
           </div>
         )}
       </div>
     </div>
+    </a>
   );
+
+  useAuth({userType:'club'});
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-white">Loading club data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!clubData) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-white text-xl">Failed to load club data</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
@@ -384,7 +363,7 @@ function ClubDashboard() {
       <div className={`fixed inset-y-0 left-0 w-64 bg-[#1a1a1a] transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-200 ease-in-out z-30`}>
         <div className="p-6">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-xl font-bold">{clubName}</h2>
+            <h2 className="text-xl font-bold">{clubData.club.name}</h2>
             <button onClick={() => setIsSidebarOpen(false)} className="text-gray-400 hover:text-white">
               <X className="w-6 h-6" />
             </button>
@@ -432,7 +411,7 @@ function ClubDashboard() {
           {/* Tabs */}
           <div className="px-6 border-t border-[#333]">
             <div className="flex gap-6">
-              {(['upcoming', 'requests', 'past']).map((tab) => (
+              {(['upcoming', 'past']).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -443,11 +422,6 @@ function ClubDashboard() {
                   }`}
                 >
                   {tab.charAt(0).toUpperCase() + tab.slice(1)} Events
-                  {tab === 'requests' && (
-                    <span className="ml-2 px-2 py-0.5 text-xs bg-purple-600 rounded-full">
-                      {events.requests.length}
-                    </span>
-                  )}
                 </button>
               ))}
             </div>
@@ -457,42 +431,56 @@ function ClubDashboard() {
         {/* Hero Banner */}
         <div className="relative h-[500px]">
           <img 
-            src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=2000"
+            src={clubData.club.banner_url || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=2000"}
             alt="Club Banner"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-[#0a0a0a]">
             <div className="max-w-7xl mx-auto px-6 h-full flex flex-col justify-center">
-              <h1 className="text-5xl font-bold mb-4">Epoch</h1>
-              <p className="text-xl text-gray-300 max-w-2xl">
-                Exploring the frontiers of Artificial Intelligence and Machine Learning through hands-on projects, workshops, and competitions.
-              </p>
-              <div className="flex gap-8 mt-8">
-                {clubStats.map((stat, index) => (
-                  <div key={index} className="text-center">
-                    <div className="text-3xl font-bold text-purple-400">{stat.value}</div>
-                    <div className="text-sm text-gray-400">{stat.label}</div>
-                  </div>
-                ))}
+              <div className="flex items-center gap-4 mb-4">
+                {clubData.club.logo_url && (
+                  <img 
+                    src={clubData.club.logo_url} 
+                    alt="Club Logo" 
+                    className="w-16 h-16 rounded-full object-cover border-2 border-purple-500"
+                  />
+                )}
+                <h1 className="text-5xl font-bold">{clubData.club.name}</h1>
               </div>
+              <p className="text-xl text-gray-300 max-w-2xl">
+                {clubData.club.description || "Club description goes here..."}
+              </p>
+              <ClubStats events={clubData.events} />
             </div>
           </div>
         </div>
 
         {/* Content */}
         <main className="max-w-7xl mx-auto px-6 py-12">
-          {Object.entries(groupEventsByMonth(events[activeTab])).map(([month, monthEvents]) => (
-            <div key={month} className="mb-12">
-              <h2 className="text-2xl font-bold text-white mb-6 border-b border-gray-800 pb-2">{month}</h2>
-              <div className="space-y-6">
-                {monthEvents.map((event) => (
-                  <div key={event.id}>
-                    {renderEventCard(event)}
-                  </div>
-                ))}
+          {clubData.events && clubData.events.length > 0 ? (
+            Object.entries(groupEventsByMonth(groupedEvents[activeTab])).map(([month, monthEvents]) => (
+              <div key={month} className="mb-12">
+                <h2 className="text-2xl font-bold text-white mb-6 border-b border-gray-800 pb-2">{month}</h2>
+                <div className="space-y-6">
+                  {monthEvents.map((event) => (
+                    <div key={event._id}>
+                      {renderEventCard(event)}
+                    </div>
+                  ))}
+                </div>
               </div>
+            ))
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-400 text-xl">No {activeTab} events found</p>
+              <button
+                onClick={() => setShowEventModal(true)}
+                className="mt-4 px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
+              >
+                Create Your First Event
+              </button>
             </div>
-          ))}
+          )}
         </main>
       </div>
 

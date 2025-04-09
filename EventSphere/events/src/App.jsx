@@ -14,7 +14,7 @@ import ClubDashboard from "./ClubDashboard";
 import EventsPage from './EventsPage';
 import AdminLogin from './admin/login';
 import ClubLogin from "./components/club/ClubLogin";
-import ClubRegister from "./components/club/ClubRegister";
+import ClubRegister from "./components/club/Clubregister";
 // Ensure all assets are in the public/assets folder and replace placeholder URLs with actual ones in components.
 
 function App() {
@@ -34,7 +34,7 @@ function App() {
         <Route path="club/:name" element={<ClubPage />} />
         <Route path="/event/:id" element={<EventDetails/>} />
         <Route path="/organize" element={<AddEvent/>} />
-        <Route path="/admin" element={<AdminDashboard/>} />
+        <Route path="/admin/dashboard" element={<AdminDashboard/>} />
         <Route path="/participants" element={<Participants/>} />
         <Route path="/club/event/:id" element={<EventOwner/>} />
         <Route path="/club/dashboard/:name" element={<ClubDashboard/>} />
