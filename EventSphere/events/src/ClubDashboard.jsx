@@ -243,6 +243,7 @@ function ClubDashboard() {
   };
 
   const renderEventCard = (event) => (
+   <a href={`/club/event/${event._id}`} className="block"> 
     <div className="bg-[#1a1a1a] rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-[1.02] max-w-2xl">
       <div className="relative h-48">
         <img 
@@ -324,6 +325,7 @@ function ClubDashboard() {
         )}
       </div>
     </div>
+    </a>
   );
 
   useAuth({userType:'club'});

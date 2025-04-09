@@ -40,6 +40,13 @@ export default function EventDetails() {
     setmodalopen(false)
   }
   useEffect(() => {
+   const cookies = Cookies.get("user");
+    if (!cookies) {
+      alert("You must Login to continue");
+      window.location.href = "/";
+    }
+  }, [])
+  useEffect(() => {
     const fetchEventDetails = async () => {
       try {
         const eventData = await Apis.fetchEventDetails(id);
