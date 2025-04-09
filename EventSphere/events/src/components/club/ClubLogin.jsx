@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Base_Url } from "../../apiserveices/api";
 import Cookies from "js-cookie";
+import useAuth from "../../hooks/useAuth";
 
 const ClubLogin = () => {
   const navigate = useNavigate();
@@ -10,7 +11,7 @@ const ClubLogin = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
+  useAuth({ userType: "club" });
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -24,7 +25,7 @@ const ClubLogin = () => {
 
       if (response.data.club) {
         // Store club info in cookies
-        Cookies.set("club_id", response.data.club.id);
+        Cookies.set("club", response.data.club.id);
         Cookies.set("club_name", response.data.club.name);
         Cookies.set("club_email", response.data.club.email);
         

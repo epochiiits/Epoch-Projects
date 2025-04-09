@@ -14,7 +14,7 @@ import ClubDashboard from "./ClubDashboard";
 import EventsPage from './EventsPage';
 import AdminLogin from './admin/login';
 import ClubLogin from "./components/club/ClubLogin";
-import ClubRegister from "./components/club/ClubRegister";
+import ClubRegister from "./components/club/Clubregister";
 // Ensure all assets are in the public/assets folder and replace placeholder URLs with actual ones in components.
 
 function App() {
