@@ -37,6 +37,7 @@ router.post("/admin/login", async (req, res) => {
         }
 
         // Generate JWT token
+        console.log(process.env)
         const token = jwt.sign(
             { adminId: admin._id },
             process.env.JWT_SECRET,

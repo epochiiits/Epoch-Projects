@@ -26,7 +26,7 @@ export default function EventsPage() {
       try {
         const fetchedEvents = await Apis.fetchEvents();
         const safeEvents = Array.isArray(fetchedEvents) ? fetchedEvents : [];
-        setEvents(safeEvents);
+        setEvents(safeEvents.filter(event => event.status != 'pending'));
         setIsLoading(false);
       } catch (error) {
         console.error("Error loading events:", error);
