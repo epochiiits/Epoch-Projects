@@ -6,8 +6,10 @@ import { Search, Plus, Users, CalendarDays, Building2 } from 'lucide-react'
 import AddClubModal from '../forms/AddClub'
 import { Apis } from '../apiserveices/api'
 import Loader from '../Loader'
+import { useNavigate } from 'react-router-dom'
 
 export default function AdminDashboard() {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('events')
   const [searchQuery, setSearchQuery] = useState('')
   const [popup, setpopup] = useState(false)
@@ -15,21 +17,29 @@ export default function AdminDashboard() {
   const [events, setEvents] = useState([])
   const [eventReqs, setEventReqs] = useState([])
   const [loading, setLoading] = useState(true)
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken')
+    if (!token) {
+      navigate('/admin/login')
+    }
+  }, [])
+
   const fetchData = async () => {
     setLoading(true)
     try {
       const events = await Apis.fetchEvents()
       setEvents(events.filter(event => event.status === 'accepted'))
       setEventReqs(events.filter(event => event.status === 'pending'))
-      
     } catch (error) {
       console.error('Error fetching events:', error)
     } finally {
       setLoading(false)
     }
   }
+
   useEffect(() => {
-    // Fetch events from the backend
     fetchData()
   }, [])
 
@@ -50,23 +60,31 @@ export default function AdminDashboard() {
     setpopup(false)
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken')
+    navigate('/admin/login')
+  }
+
   return (
     <div className="min-h-screen bg-[#121212]">
-      {/* Header */}
       <AddClubModal isOpen={popup} onClose={onclose} />
       <header className="sticky top-0 z-10 border-b border-purple-800/20 bg-[#1A1A1A]">
         <div className="flex items-center justify-between px-6 py-4">
           <h1 className="text-2xl font-bold text-white">EventSphere Admin</h1>
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+          >
+            Logout
+          </button>
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="p-6">
         {loading ? (
           <Loader />
         ) : (
           <>
-            {/* Summary Section */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
               <div className="rounded-lg bg-[#1E1E1E] p-4 flex items-center space-x-4">
                 <div className="rounded-full bg-purple-500/20 p-3">
@@ -97,7 +115,6 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Navigation Tabs */}
             <nav className="flex space-x-1 rounded-lg bg-[#1E1E1E] p-1 mb-6">
               <button
                 onClick={() => setActiveTab('events')}
@@ -128,7 +145,6 @@ export default function AdminDashboard() {
               </button>
             </nav>
 
-            {/* Events or Requests */}
             <div className="mt-6">
               {activeTab === 'events' ? (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
