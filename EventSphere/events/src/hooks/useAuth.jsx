@@ -22,7 +22,7 @@ export default function useAuth({userType}) {
           navigate("/admin");
           break;
         case 'club':
-          navigate("/club");
+          navigate(`/club/dashboard/${cookie}`);
           break;
         case 'user':
           navigate("/events");

@@ -7,6 +7,7 @@ const bcrypt = require('bcrypt');
 const {storage} = require('../storage/storage')
 // Set up Cloudinary configuration using environment variablesconst { storage } = require('./storage/storage');
 const multer = require('multer');
+const Events = require('../models/event');
 const upload = multer({ storage });
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -91,10 +92,13 @@ router.post('/clubs/login', async (req, res) => {
 router.get('/clubs/:id', async (req, res) => {
     try {
       const club = await Clubs.findById(req.params.id);
+      
       if (!club) {
         return res.status(404).json({ error: 'Club not found' });
       }
-      res.status(200).json(club);
+
+      const events = await Events.find({ _id: { $in: club.events } });
+      res.status(200).json({club , events});
     } catch (error) {
       res.status(500).json({ error: 'Internal Server Error' });
     }
