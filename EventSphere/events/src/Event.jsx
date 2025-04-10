@@ -222,11 +222,11 @@ export default function EventDetails() {
                   event.clubs.map((club) => (
                     <a key={club._id} href={`/club/${club._id}`}>
                       <img
-                        src={club.imageUrl || "/placeholder.svg"}
+                        src={club.imageUrl || ""}
                         alt={club.name}
                         className="h-12 w-12 object-cover rounded-full border-2 border-purple-500"
                         onError={(e) => {
-                          e.target.src = "/placeholder.svg";
+                          e.target.src = "";
                         }}
                       />
                     </a>
@@ -505,11 +505,11 @@ export default function EventDetails() {
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
                       <img
-                        src={rating.profile || "/placeholder.svg"}
+                        src={rating.profile || ""}
                         alt={rating.name}
                         className="h-10 w-10 rounded-full object-cover"
                         onError={(e) => {
-                          e.target.src = "/placeholder.svg";
+                          e.target.src = "";
                         }}
                       />
                       <div className="space-y-1">

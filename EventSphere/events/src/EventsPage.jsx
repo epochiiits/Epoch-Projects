@@ -9,6 +9,7 @@ import {
   Search,
   Filter,
   LogOut,
+  Star,
   Award,
   User,
   Ticket,

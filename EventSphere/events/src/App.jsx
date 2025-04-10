@@ -31,7 +31,7 @@ function App() {
               <Footer />
             </div>
           }/>
-        <Route path="club/:name" element={<ClubPage />} />
+        <Route path="club/:id" element={<ClubPage />} />
         <Route path="/event/:id" element={<EventDetails/>} />
         <Route path="/organize" element={<AddEvent/>} />
         <Route path="/admin/dashboard" element={<AdminDashboard/>} />

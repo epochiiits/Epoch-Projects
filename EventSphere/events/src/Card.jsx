@@ -2,13 +2,13 @@ import React, { useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./index_r.css";
 
-const Card = ({ name, description, image, link }) => {
+const Card = ({ _id , name, description, logo_url, link }) => {
   const navigate = useNavigate();
   const cardRef = useRef(null);
 
   const handleClick = () => {
-    if (name) {
-      navigate('/club/'+name);
+    if (_id) {
+      navigate('/club/'+_id);
     }
   };
 
@@ -37,7 +37,7 @@ const Card = ({ name, description, image, link }) => {
         {/* Background Image */}
         <div
           className="absolute inset-0 bg-cover bg-center rounded-lg"
-          style={{ backgroundImage: `url(${image})` }}
+          style={{ backgroundImage: `url(${logo_url})` }}
         ></div>
 
         {/* Content */}
