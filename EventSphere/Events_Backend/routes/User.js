@@ -196,7 +196,7 @@ router.post("/add-comment/:id", async (req, res) => {
   }
 
   try {
-    const item = await Model.findById(id);
+    const item = await Event.findById(id);
 
     if (!item) {
       return res.status(404).json({ error: "Item not found" });
@@ -220,12 +220,13 @@ router.post("/add-comment/:id", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 router.delete("/delete-comment/:id/:commentId", async (req, res) => {
   const { id, commentId } = req.params;
   const { userId } = req.body; // Assuming the user ID of the request sender is sent in the request body
 
   try {
-    const item = await Model.findById(id);
+    const item = await Event.findById(id);
 
     if (!item) {
       return res.status(404).json({ error: "Item not found" });
