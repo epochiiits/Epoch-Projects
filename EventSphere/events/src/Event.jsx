@@ -18,11 +18,14 @@ import {
   Award,
   Ticket,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import { useState, useEffect, useTransition } from "react";
 import { useParams } from "react-router-dom";
 import { Apis } from "./apiserveices/api";
+import { Base_Url } from "./apiserveices/api";
 import Cookies from "js-cookie";
+import axios from "axios"; // Import axios
 
 export default function EventDetails() {
   const { id } = useParams();
@@ -30,22 +33,37 @@ export default function EventDetails() {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [name, setName] = useState("");
-  const [modalopen, setmodalopen] = useState(false)
+  const [modalopen, setmodalopen] = useState(false);
   const [ratings, setRatings] = useState([]);
   const [error, setError] = useState("");
   const [event, setEvent] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const userid = Cookies.get("user");
+
   const closemodal = () => {
-    setmodalopen(false)
-  }
+    setmodalopen(false);
+  };
+
   useEffect(() => {
-   const cookies = Cookies.get("user");
+    const cookies = Cookies.get("user");
     if (!cookies) {
       alert("You must Login to continue");
       window.location.href = "/";
+    } else {
+      // Set the name from user data if available
+      try {
+        const userData = JSON.parse(cookies);
+        if (userData.name) {
+          setName(userData.name);
+        }
+      } catch (e) {
+        // If cookies value is not JSON parseable, just use it as is
+        console.log("Could not parse user cookie data");
+      }
     }
-  }, [])
+  }, []);
+
   useEffect(() => {
     const fetchEventDetails = async () => {
       try {
@@ -65,14 +83,16 @@ export default function EventDetails() {
 
   const formatDate = (dateString) => {
     if (!dateString) return "TBA";
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    const options = { year: "numeric", month: "long", day: "numeric" };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
-  const handleSubmit = (e) => {
+  // Updated handleSubmit to use axios instead of fetch
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
+    // Form validation
     if (!rating) {
       setError("Please select a rating");
       return;
@@ -88,20 +108,63 @@ export default function EventDetails() {
       return;
     }
 
-    startTransition(() => {
-      const newRating = {
+    // Start submission state
+    setIsSubmitting(true);
+
+    try {
+      // Call API to submit the rating using axios
+      const response = await axios.post(`${Base_Url}/add-comment/${id}`, {
+        user: userid,
         name,
-        profile: "/placeholder.svg?height=40&width=40",
         rating,
         comment,
-        createdAt: new Date(),
-      };
+      });
 
-      setRatings([newRating, ...ratings]);
+      // Axios automatically transforms JSON response
+      const data = response.data;
+
+      // Update the local state with the updated ratings from server
+      setRatings(data.ratings);
+
+      // Reset form
       setComment("");
-      setName("");
       setRating(0);
-    });
+
+      // Keep the name as it was before if the user already entered it
+    } catch (err) {
+      console.error("Error submitting rating:", err);
+      setError(
+        err.response?.data?.error ||
+          err.message ||
+          "Failed to submit comment. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Function to delete a comment using axios
+  const handleDeleteComment = async (commentId) => {
+    try {
+      const response = await axios.delete(
+        `${Base_Url}/delete-comment/${id}/${commentId}`,
+        {
+          data: { userId: userid }, // For DELETE requests, use 'data' property
+        }
+      );
+
+      // Axios automatically transforms JSON response
+      const data = response.data;
+
+      // Update the local state with the updated ratings from server
+      setRatings(data.ratings);
+    } catch (err) {
+      console.error("Error deleting comment:", err);
+      alert(
+        err.response?.data?.error ||
+          "Failed to delete comment. Please try again."
+      );
+    }
   };
 
   if (isLoading) {
@@ -112,7 +175,7 @@ export default function EventDetails() {
     );
   }
 
-  if (error) {
+  if (error && !ratings.length) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-xl text-red-500">{error}</div>
@@ -155,18 +218,19 @@ export default function EventDetails() {
               className="space-y-4"
             >
               <div className="flex gap-2">
-                {event.clubs && event.clubs.map((club) => (
-                  <a key={club._id} href={`/club/${club._id}`}>
-                    <img
-                      src={club.imageUrl || "/placeholder.svg"}
-                      alt={club.name}
-                      className="h-12 w-12 object-cover rounded-full border-2 border-purple-500"
-                      onError={(e) => {
-                        e.target.src = "/placeholder.svg";
-                      }}
-                    />
-                  </a>
-                ))}
+                {event.clubs &&
+                  event.clubs.map((club) => (
+                    <a key={club._id} href={`/club/${club._id}`}>
+                      <img
+                        src={club.imageUrl || "/placeholder.svg"}
+                        alt={club.name}
+                        className="h-12 w-12 object-cover rounded-full border-2 border-purple-500"
+                        onError={(e) => {
+                          e.target.src = "/placeholder.svg";
+                        }}
+                      />
+                    </a>
+                  ))}
               </div>
               <h1 className="text-4xl sm:text-6xl font-bold text-white">
                 {event.title}
@@ -421,10 +485,10 @@ export default function EventDetails() {
 
               <button
                 type="submit"
-                disabled={isPending}
+                disabled={isSubmitting}
                 className="w-full px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition duration-300 disabled:opacity-50"
               >
-                {isPending ? "Submitting..." : "Submit Comment"}
+                {isSubmitting ? "Submitting..." : "Submit Comment"}
               </button>
             </form>
 
@@ -466,29 +530,48 @@ export default function EventDetails() {
                         </div>
                       </div>
                     </div>
-                    <span className="text-sm text-gray-400">
-                      {formatDate(rating.createdAt)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-400">
+                        {formatDate(rating.createdAt)}
+                      </span>
+
+                      {/* Show delete button only for the user's own comments */}
+                      {rating.user === userid && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteComment(rating._id)}
+                          className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                          title="Delete comment"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <p className="text-gray-300">{rating.comment}</p>
                 </motion.div>
               ))}
+
+              {ratings.length === 0 && (
+                <p className="text-gray-400 text-center italic">
+                  No comments yet. Be the first to leave a review!
+                </p>
+              )}
             </div>
           </motion.section>
+
+          {/* Registration button */}
           <button
-              onClick={() => setmodalopen(true)}
-              className="px-8 py-3 bg-purple-900 text-white rounded-lg hover:bg-purple-800 transition duration-300 flex items-center gap-2"
-            >
-              <User className="h-5 w-5" />
-              Register Now
-            </button>
+            onClick={() => setmodalopen(true)}
+            className="px-8 py-3 bg-purple-900 text-white rounded-lg hover:bg-purple-800 transition duration-300 flex items-center gap-2"
+          >
+            <User className="h-5 w-5" />
+            Register Now
+          </button>
+
           {/* Registration Component */}
-          {isUpcoming && modalopen&&  (
-            <RegisterEvent
-              userId={userid}
-              event={event}
-              onClose={closemodal}
-            />
+          {isUpcoming && modalopen && (
+            <RegisterEvent userId={userid} event={event} onClose={closemodal} />
           )}
         </div>
       </div>
