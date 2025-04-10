@@ -3,7 +3,8 @@ import { Users, Calendar, Clock, MapPin, Phone, DollarSign, Search, Plus, Star }
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Base_Url } from './apiserveices/api';
-
+import useAuth from './hooks/useAuth';
+import Cookies from 'js-cookie'
 function EventOwner() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -12,8 +13,13 @@ function EventOwner() {
   const [error, setError] = useState(null);
   const [leads, setleads] = useState(null)
   const [activeTab, setActiveTab] = useState('participants');
-
+  
   useEffect(() => {
+
+    const token = Cookies.get('club')
+    if (!token) {
+      navigate('/club/login');
+    }
     const fetchEventData = async () => {
       try {
         const response = await axios.get(`${Base_Url}/clubs/event/${id}`);
@@ -90,24 +96,8 @@ function EventOwner() {
     <div className="min-h-screen bg-[#1a1a1a] text-gray-100">
       {/* Header */}
       <header className="bg-[#2a2a2a] border-b border-[#333] px-6 py-4">
-        <div className="flex justify-between items-center">
-          <button
-            onClick={() => navigate(-1)}
-            className="text-white bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md text-sm"
-          >
-            Back
-          </button>
-
-          <h1 className="text-2xl font-bold text-white">{event.title}</h1>
-
-          <button 
-            className="bg-red-900 hover:bg-red-800 px-4 py-2 rounded-md text-sm text-white"
-            onClick={() => navigate('/logout')}
-          >
-            Log Out
-          </button>
-        </div>
-      </header>
+          <h1 className=" text-center text-2xl font-bold text-white">{event.title}</h1>
+      </header> 
 
       {/* Main Content */}
       <main className="p-6">

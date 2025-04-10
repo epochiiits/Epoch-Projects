@@ -20,7 +20,7 @@ export function EventCard({ event, onEdit, onDelete , fetchData }) {
   }
 
   return (
-    <a href="/participants">
+    <a href={"/participants/"+event._id} >
     <div className="bg-[#1E1E1E] rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:transform hover:scale-[1.02]">
       <div className="relative">
         <img
