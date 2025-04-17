@@ -31,11 +31,11 @@ function App() {
               <Footer />
             </div>
           }/>
-        <Route path="club/:name" element={<ClubPage />} />
+        <Route path="club/:id" element={<ClubPage />} />
         <Route path="/event/:id" element={<EventDetails/>} />
         <Route path="/organize" element={<AddEvent/>} />
         <Route path="/admin/dashboard" element={<AdminDashboard/>} />
-        <Route path="/participants" element={<Participants/>} />
+        <Route path="/participants/:id" element={<Participants/>} />
         <Route path="/club/event/:id" element={<EventOwner/>} />
         <Route path="/club/dashboard/:name" element={<ClubDashboard/>} />
         <Route path="/events" element={<EventsPage/>} />

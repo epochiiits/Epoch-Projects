@@ -45,14 +45,14 @@ export default function Section({ title, items, color }) {
             startMarquee()
           }}
         >
-          {/* Original items */}
-          {items.map((item, idx) => (
-            <Card key={idx} {...item} />
+          {/* Original items */}  
+          {items.map((item) => (
+            <Card key={item._id} {...item} />
           ))}
 
           {/* Duplicate items for seamless loop */}
-          {items.map((item, idx) => (
-            <Card key={`clone-${idx}`} {...item} />
+          {items.map((item) => (
+            <Card key={`clone-${item._id}`} {...item} />
           ))}
         </motion.div>
       </div>

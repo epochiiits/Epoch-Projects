@@ -3,7 +3,7 @@ const router = express.Router();
 const Clubs = require("../models/Club");
 const cloudinary = require('cloudinary').v2;
 const bcrypt = require('bcrypt');
-
+const Users = require('../models/User');
 const {storage} = require('../storage/storage')
 // Set up Cloudinary configuration using environment variablesconst { storage } = require('./storage/storage');
 const multer = require('multer');
@@ -24,7 +24,38 @@ router.get('/clubs', async (req, res) => {
   }
 });
 
+router.get('/clubs/event/:id', async (req, res) => {{
+  try {
+    const event = await Events.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+    // Fetch leads associated with the event
+    var leads = []  
+    for (let i = 0; i < event.participants.length; i++) {
+      const lead = await Users.findById(event.participants[i].lead);
+      leads.push(lead);
+    }
+    res.status(200).json({ event, leads });
+  } catch (error) {
+    console.error('Error fetching event:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}})
 
+router.get("/club/:id" , async (req , res)=>{
+  try {
+    const club = await Clubs.findById(req.params.id);
+    if (!club) {
+      return res.status(404).json({ error: "Club not found" });
+    }
+    // Fetch events associated with the club
+    const events = await Events.find({ _id: { $in: club.events } });
+    res.status(200).json({ club, events });
+  } catch (error) {
+    res.status(500).json({error: "Internal Server Error"})
+  }
+})
 
 router.post('/clubs', upload.fields([{ name: 'banner' }, { name: 'logo' }]), async (req, res) => {
   try {
